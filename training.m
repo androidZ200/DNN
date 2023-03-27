@@ -102,4 +102,4 @@ end
 % grid on;
 
 clearvars num num2 iter7 iter8 iter9 ep epoch P speed me mi W F T argmax Accr cycle f Target ...
-    randind grad batch method speeddown lz tmp_data norma;
+    randind gradient batch method params LossFunc slowdown lz tmp_data norma;
