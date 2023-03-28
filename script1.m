@@ -1,12 +1,12 @@
 clear all;
 init;
-z = [0.2 0.4 0.6 0.8]/metric;
-DOES = ones(N,N,length(z)-1);
+z = [0.3 0.6]/metric;
+DOES = exp(2i*pi*rand(N,N,length(z)-1));
 
-epoch = 4;
-speed = 1e0;
-slowdown = 0.9997;
-LossFunc = 'SCE';
+epoch = 1;
+batch = 16;
+LossFunc = 'Gauss';
+IntensityFactor = 2;
 training;
 check_result;
 

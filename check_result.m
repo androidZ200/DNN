@@ -12,7 +12,7 @@ parfor iter=1:sum(TestData);
     end
     
     W = resizeimage(Test(:,:,it,num),N,AN);
-    [tmp,W] = recognize(X,Y,W,z,DOES,k,coords,G_size,U)
+    [tmp,W] = recognize(X,Y,W,z,DOES,k,coords,G_size,U);
 
     [~, argmax] = max(tmp);
     ttt = zeros(ln);
