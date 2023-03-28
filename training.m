@@ -35,15 +35,9 @@ for ep=1:epoch
 
             % прямое распространение
             W = resizeimage(Train(:,:,randind(iter7-floor(iter8/ln)),num),N,AN);
-            [me, W, mi] = recognize(X,Y,W,z,DOES,k,coords,G_size,U);
+            [me, W, mi] = recognize(W,z,DOES,k,MASK,U);
 
-            % получение оценок
-            for num2=1:ln
-                [me(num2), mi(num2, 1:2)] = get_max_intensity(X, Y, W(:,:,end), coords(num2, 1), coords(num2, 2), G_size);
-            end
-            [~, argmax] = max(me);
-
-            if argmax == num
+            if max(me) == me(num)
                 Accr = Accr + 1;
             else
                 % обучение
@@ -55,14 +49,14 @@ for ep=1:epoch
                     case 'MSE' % Среднеквадратичное отклонение
                         me(num) = me(num) - 1;
                         for num2=1:ln
-                            F(mi(num2,1),mi(num2,2)) = conj(W(mi(num2,1),mi(num2,2),end))*me(num2);
+                            F = F + conj(W(:,:,end))*me(num2).*mi(:,:,num2);
                         end
                     case 'SCE' % Кросс энтропия
                         me = exp(me*5e3);
                         for num2=1:ln
-                            F(mi(num2,1),mi(num2,2)) = conj(W(mi(num2,1),mi(num2,2),end))*me(num2);
+                            F = F + conj(W(:,:,end))*me(num2).*mi(:,:,num2);
                         end
-                        F(mi(num,1),mi(num,2)) = F(mi(num,1),mi(num,2)) - conj(W(mi(num,1),mi(num,2),end))*sum(me);
+                        F = F - conj(W(:,:,end))*sum(me).*mi(:,:,num);
                     otherwise
                         error(['Loss function "' name '" is not exist']);
                 end
@@ -101,5 +95,5 @@ end
 % ylim([0 100]);
 % grid on;
 
-clearvars num num2 iter7 iter8 iter9 ep epoch P speed me mi W F T argmax Accr cycle f Target ...
+clearvars num num2 iter7 iter8 iter9 ep epoch P speed me mi W F T Accr cycle f Target ...
     randind gradient batch method params LossFunc slowdown lz tmp_data norma;

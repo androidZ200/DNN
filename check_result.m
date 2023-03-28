@@ -12,14 +12,15 @@ parfor iter=1:sum(TestData);
     end
     
     W = resizeimage(Test(:,:,it,num),N,AN);
-    [tmp,W] = recognize(X,Y,W,z,DOES,k,coords,G_size,U)
+%     W = W(end:-1:1, :);
+    [tmp,W] = recognize(W,z,DOES,k,MASK,U)
 
     [~, argmax] = max(tmp);
     ttt = zeros(ln);
     ttt(argmax, num) = 1;
     tabl1 = tabl1 + ttt;
 %     for nt = 1:ln
-%         tmp(nt) = get_energy(X, Y, W(:,:,end), coords(nt, 1), coords(nt, 2), G_size);
+%         tmp(nt) = get_energy(W(:,:,end), MASK(:,:,nt));
 %     end
     ttt(:,num) = tmp;
     tabl2 = tabl2 + ttt;
@@ -27,7 +28,7 @@ end
 
 accuracy = sum(diag(tabl1))/sum(TestData)*100;
 display(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc)]);
-display(round(tabl1));
+% display(round(tabl1));
 
 clearvars argmax W iter num tmp nt ttt it;
 return
@@ -46,7 +47,7 @@ for ii = 1:ln
 end
 clearvars ii jj grad;
 accuracy = sum(diag(tabl1))/sum(TestData)*100;
-display(['accuracy = ' num2str(accuracy) '%;']);
+title(['accuracy = ' num2str(accuracy) '%;']);
 return;
 
 %% intensity tabel
@@ -65,6 +66,6 @@ T = tabl2;
 for ii=1:ln
     T(:,ii) = sort(T(:,ii));
 end
-display(['contrast = ' num2str(mean((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100)) '%;']);
+title(['min contrast = ' num2str(min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100)) '%;']);
 clearvars ii jj grad T;
 return;

@@ -27,9 +27,13 @@ aa = A*4;
 hh = aa; %aa*sqrt(3)/2;
 coords = [-aa hh; 0 hh; aa hh; -1.5*aa 0; -0.5*aa 0; 0.5*aa 0; 1.5*aa 0; -aa -hh; 0 -hh; aa -hh];
 G_size = A;
+MASK = zeros(N,N,ln);
+for iter=1:ln
+    MASK(:,:,iter) = (abs(X-coords(iter,1)) < G_size/2).*(abs(Y-coords(iter,2)) < G_size/2);
+end
 
 % path = 'D:/mnist/';
 load('D:/mnist/Train.mat');
 load('D:/mnist/Test.mat');
 
-clearvars aa hh kx Kx Ky T;
+clearvars aa hh kx Kx Ky T iter;

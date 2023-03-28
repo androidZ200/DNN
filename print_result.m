@@ -12,7 +12,7 @@ fig = figure('position', [100 100 1000 500]);
 for p=1:P
 	for num=1:length(nums)
 		W = resizeimage(Test(:,:,randi([1 TestData(num)]),num),N,AN);
-        [tmp, F] = recognize(X,Y,W,z,DOES,k,coords,G_size,U);
+        [tmp, F] = recognize(W,z,DOES,k,MASK,U);
 %         tmp = exp(tmp);
         tmp = tmp./sum(tmp);
 
