@@ -5,6 +5,7 @@ if exist('speed', 'var') ~= 1; speed = 1e-1; end
 if exist('slowdown', 'var') ~= 1; slowdown = 0.9996; end
 if exist('batch', 'var') ~= 1; batch = 1; end
 if exist('LossFunc', 'var') ~= 1; LossFunc = 'SCE'; end
+if exist('dropout', 'var') ~= 1; dropout = 0; end
 if exist('method', 'var') ~= 1; method = 'default'; end
 if exist('params', 'var') ~= 1; params = []; end
 
@@ -33,25 +34,26 @@ for ep=1:epoch
         for iter8=0:batch*ln-1 % parfor
             num = mod(iter8, ln)+1;
 
-            % прямое распространение
+            % direct propagation
             W = resizeimage(Train(:,:,randind(iter7-floor(iter8/ln)),num),N,AN);
-            [me, W, mi] = recognize(W,z,DOES,k,MASK,U);
+            [me, W, mi] = recognize(W,z,DOES,k,MASK,U,true);
+            W(:,:,end) = W(:,:,end).*(rand(N) >= dropout);
 
             if max(me) == me(num)
                 Accr = Accr + 1;
             else
-                % обучение
+                % training
                 F = zeros(N);
                 switch LossFunc
-                    case 'Gauss' % Целевая гауссова функция
-                        % Гаусс
+                    case 'Gauss' % the integral Gaussian function
+                        % в€љР°СѓСЃСЃ
                         F = conj(W(:,:,end)).*(abs(W(:,:,end)).^2 - Target(:,:,num));
-                    case 'MSE' % Среднеквадратичное отклонение
+                    case 'MSE' % standard deviation
                         me(num) = me(num) - 1;
                         for num2=1:ln
                             F = F + conj(W(:,:,end))*me(num2).*mi(:,:,num2);
                         end
-                    case 'SCE' % Кросс энтропия
+                    case 'SCE' % cross entropy
                         me = exp(me*5e3);
                         for num2=1:ln
                             F = F + conj(W(:,:,end))*me(num2).*mi(:,:,num2);
@@ -61,6 +63,7 @@ for ep=1:epoch
                         error(['Loss function "' name '" is not exist']);
                 end
                 T = zeros(N,N,lz);
+                % reverse propagation
                 for iter9=0:lz-1
                     F = propagation(F, f(end-iter9), k, U).*DOES(:,:,end-iter9);
                     T(:,:,end-iter9) = -imag(W(:,:,end-iter9-1).*F);
@@ -69,7 +72,7 @@ for ep=1:epoch
             end
         end
     
-        % обновляем веса
+        % updating weights
         norma = max(max(max(abs(gradient))));
         if norma > 0
             gradient = gradient / norma;
@@ -78,7 +81,7 @@ for ep=1:epoch
         DOES = DOES./exp(1i*speed*gradient);
         speed = speed*slowdown;
 
-        % вывод данных в консоль
+        % data output to the console
         if mod(iter7, cycle) == 0
             Accr = Accr/cycle/ln*100;
             accr_graph(end+1) = Accr;
@@ -96,4 +99,4 @@ end
 % grid on;
 
 clearvars num num2 iter7 iter8 iter9 ep epoch P speed me mi W F T Accr cycle f Target ...
-    randind gradient batch method params LossFunc slowdown lz tmp_data norma;
+    randind gradient batch method params LossFunc slowdown lz tmp_data norma dropout;

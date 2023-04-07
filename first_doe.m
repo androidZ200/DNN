@@ -1,11 +1,12 @@
-
+% analytical method for calculating DOE
 P = 2^9;
 Weights = ones(length(nums), 1);
 
 tic;
-for num_doe = 1:(length(z)-1)
-    AA = zeros(N, N, length(nums));
+for num_doe = 1:(length(z)-1) % we teach DOE in turn starting from 1
+    AA = zeros(N, N, length(nums)); % array for accumulating digits
     for num = 1:length(nums)
+        % beta - target phase function
         beta = -k*sqrt((X - coords(num, 1)).^2 + (Y - coords(num, 2)).^2 + (z(end) - z(num_doe))^2);
         for iter = 1:P
             CURR = readimage([path, 'train/', num2str(nums(num)), '/', num2str(iter), '.bmp'], N, (N-AN)/2);
@@ -18,6 +19,7 @@ for num_doe = 1:(length(z)-1)
         display(['num ' num2str(nums(num)) ' is done; time = ' num2str(toc) ' s']);
     end
     
+    % we select weighting factors to reduce the error
     for iter4=1:16
         AAA = zeros(N);
         for num = 1:length(nums)
@@ -33,6 +35,3 @@ for num_doe = 1:(length(z)-1)
 end
 
 clearvars alpha beta num_doe AAA AA num CURR P iter begin dd iter4;
-return;
-%%
-DOES = exp(2i*pi*rand(N,N,length(z)-1));

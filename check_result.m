@@ -1,9 +1,10 @@
 
-tabl1 = zeros(ln);
-tabl2 = zeros(ln);
+tabl1 = zeros(ln); % error table
+tabl2 = zeros(ln); % intensity table
 
 tic;
 parfor iter=1:sum(TestData);
+    % we define the digit and the number of the digit
     num = 1;
     it = iter;
     while it > TestData(num)
@@ -11,9 +12,10 @@ parfor iter=1:sum(TestData);
         num = num+1;
     end
     
+    % running through the system
     W = resizeimage(Test(:,:,it,num),N,AN);
 %     W = W(end:-1:1, :);
-    [tmp,W] = recognize(W,z,DOES,k,MASK,U)
+    [tmp,W] = recognize(W,z,DOES,k,MASK,U,false);
 
     [~, argmax] = max(tmp);
     ttt = zeros(ln);
@@ -28,13 +30,12 @@ end
 
 accuracy = sum(diag(tabl1))/sum(TestData)*100;
 display(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc)]);
-% display(round(tabl1));
 
 clearvars argmax W iter num tmp nt ttt it;
 return
 
-%% accuracy table
-
+%% error table
+% output of a beautiful error table
 grad = 100;
 figure('position', [500 500 1000 500]);
 imagesc(nums, nums, tabl1./repmat(TestData, [ln, 1])*100, [0 100]);
@@ -48,10 +49,11 @@ end
 clearvars ii jj grad;
 accuracy = sum(diag(tabl1))/sum(TestData)*100;
 title(['accuracy = ' num2str(accuracy) '%;']);
+display(['accuracy = ' num2str(accuracy) '%;']);
 return;
 
-%% intensity tabel
-
+%% intensity table
+% output of a beautiful intensity table
 grad = 100;
 figure('position', [500 500 1000 500]);
 imagesc(nums, nums, tabl2./repmat(sum(tabl2), [ln, 1])*100, [0 100]);
@@ -67,5 +69,6 @@ for ii=1:ln
     T(:,ii) = sort(T(:,ii));
 end
 title(['min contrast = ' num2str(min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100)) '%;']);
+display(['min contrast = ' num2str(min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100)) '%;']);
 clearvars ii jj grad T;
 return;

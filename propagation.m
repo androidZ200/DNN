@@ -1,4 +1,5 @@
-function Out = propagation(Field, z, k, U)   
+function Out = propagation(Field, z, k, U)
+    % the function of radiation propagation over a distance z
     F = exp(1i*z*U); 
     % U = sqrt(k^2 - U)
     % U = k - U/2/k

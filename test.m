@@ -26,7 +26,7 @@ grid on;
 ylim([0 100]);
 xlim([0 length(accr1)*64]);
 
-legend('СКО', 'Кросс-энтропия');
+legend('MSE', 'SCE');
 
 %%
 

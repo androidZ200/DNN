@@ -1,21 +1,26 @@
 
 P = 1;
 
+% colormap in shades of Samara university
 ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
 		   linspace(1, 145/255, 50), linspace(145/255, 0, 100); ...
 		   linspace(1, 201/255, 50), linspace(201/255, 0, 100)]';
 
+% to draw squares
 xx = [-1 -1 1 1 -1]*G_size/2;
 yy = [1 -1 -1 1 1]*G_size/2;
        
 fig = figure('position', [100 100 1000 500]);
 for p=1:P
 	for num=1:length(nums)
+        % getting results
 		W = resizeimage(Test(:,:,randi([1 TestData(num)]),num),N,AN);
-        [tmp, F] = recognize(W,z,DOES,k,MASK,U);
+%         W = W(end:-1:1, :);
+        [tmp, F] = recognize(W,z,DOES,k,MASK,U,false);
 %         tmp = exp(tmp);
         tmp = tmp./sum(tmp);
 
+        % drawing images
         colormap(ssau);
 		subplot(1, 2, 1, 'align', 'position', [0.02, 0.02, 0.47, 0.96]);
 		imagesc(abs(W(1+(N-AN)/2:(N+AN)/2, 1+(N-AN)/2:(N+AN)/2)));
@@ -29,6 +34,7 @@ for p=1:P
         axis xy;
         hold on;
 
+        % drawing numbers and squares of focus areas
         for nt=1:length(nums)
             if tmp(nt) == max(tmp)
                 text(coords(nt, 1)-A*4*0.4, coords(nt, 2)-A*4*0.3, sprintf('%.2f%%', tmp(nt)*100), 'fontsize', 14, 'color', [1, 0, 0]);

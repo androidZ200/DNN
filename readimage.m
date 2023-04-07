@@ -1,4 +1,5 @@
 function [WF, W] = readimage(path, N, Pad)
+	% we read the image and bring it to the specified form
 	W = imread(path);
     W = mean(W, 3);
     W = W(end:-1:1, :);
