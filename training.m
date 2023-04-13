@@ -1,7 +1,7 @@
 
 if exist('iteration', 'var') ~= 1; iteration = 1024; end
 if exist('speed', 'var') ~= 1; speed = 1e-1; end
-if exist('slowdown', 'var') ~= 1; slowdown = 0.9996; end
+if exist('slowdown', 'var') ~= 1; slowdown = 0.999; end
 if exist('dropout', 'var') ~= 1; dropout = 0; end
 if exist('method', 'var') ~= 1; method = 'default'; end
 if exist('params', 'var') ~= 1; params = []; end
@@ -10,10 +10,12 @@ cycle = 64;
 lz = length(doe_plane);
 f = [repmat(doe_plane(2:end)-doe_plane(1:end-1), [size(INPUT,3), 1]) (output_plane-doe_plane(end))'];
 tmp_data = zeros(N,N,lz);
+loss_graph(1) = nan;
 
 tic;
 for iter7=1:iteration
     gradient = zeros(N,N,lz);
+    loss = 0;
     for iter8=1:size(INPUT,3)
         % direct propagation
         W = recognize(INPUT(:,:,iter8),[doe_plane output_plane(iter8)],DOES,k,U);
@@ -21,6 +23,7 @@ for iter7=1:iteration
 
         % training
         F = conj(W(:,:,end)).*(abs(W(:,:,end)).^2 - OUTPUT(:,:,iter8));
+        loss = loss + sqrt(sum(sum((abs(W(:,:,end)).^2 - OUTPUT(:,:,iter8)).^2)));
         T = zeros(N,N,lz);
         % reverse propagation
         for iter9=0:lz-1
@@ -40,9 +43,10 @@ for iter7=1:iteration
 
     % data output to the console
     if mod(iter7, cycle) == 0
-        display(['iter = ' num2str(iter7) '/' num2str(iteration) '; time = ' num2str(toc) ';']);
+        loss_graph(end + 1) = loss;
+        display(['iter = ' num2str(iter7) '/' num2str(iteration) '; loss = ' num2str(loss) '; time = ' num2str(toc) ';']);
     end
     DOES = exp(1i*angle(DOES));
 end
 
-clearvars iter7 iter8 iter9 speed W F T cycle f gradient method params slowdown lz tmp_data norma dropout;
+clearvars iter7 iter8 iter9 speed W F T cycle f gradient method params slowdown iteration lz tmp_data norma dropout loss;

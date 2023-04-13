@@ -1,5 +1,5 @@
 % animation of radiation propagation through the entire DOE system
-num = randi([1 size(INPUT,3)]);
+num = 2;
 W = INPUT(:,:,num);
 
 fig = figure;
