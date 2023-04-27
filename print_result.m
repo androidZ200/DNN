@@ -1,5 +1,5 @@
 
-P = 1;
+P = 2;
 
 % colormap in shades of Samara university
 ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
@@ -23,12 +23,12 @@ for p=1:P
         % drawing images
         colormap(ssau);
 		subplot(1, 2, 1, 'align', 'position', [0.02, 0.02, 0.47, 0.96]);
-		imagesc(abs(W(1+(N-AN)/2:(N+AN)/2, 1+(N-AN)/2:(N+AN)/2)));
+		imagesc([-A A], [-A A], abs(W(1+(N-AN)/2:(N+AN)/2, 1+(N-AN)/2:(N+AN)/2)));
         set(gca,'xtick',[],'ytick',[]);
         axis square;
         axis xy;
 		subplot(1, 2, 2, 'align', 'position', [0.51, 0.02, 0.47, 0.96]);
-		imagesc(x, x, abs(F(:,:,end)).^2);
+		imagesc([-B B], [-B B], abs(F(:,:,end)).^2);
         set(gca,'xtick',[],'ytick',[]);
         axis square;
         axis xy;

@@ -1,3 +1,8 @@
+G_size = max(sum(MASK(:,:,1)))*2*B/N;
+for iter=1:ln
+    coords(iter,1) = mean(X(MASK(:,:,iter)));
+    coords(iter,2) = mean(Y(MASK(:,:,iter)));
+end
 
 x = [-1 -1 1 1 -1]*G_size/2;
 y = [1 -1 -1 1 1]*G_size/2;
@@ -42,8 +47,8 @@ axis xy;
 %%
 
 num = 4;% randi([1 ln]);
-W = resizeimage(Test(:,:,3,num),N,AN);
-[tmp, F] = recognize(X,Y,W,z,DOES,k,coords,G_size,U);
+W = resizeimage(Test(:,:,6,num),N,AN);
+[tmp, F] = recognize(W,z,DOES,k,MASK,U,false);
 tmp = tmp./sum(tmp);
 gr = gray;
 gr = gr(end:-1:1, :);
