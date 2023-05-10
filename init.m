@@ -5,7 +5,7 @@ if exist('lambda', 'var') ~= 1; lambda = 0.532e-6/metric; end  % wavelength
 k = 2*pi/lambda;
 
 if exist('N', 'var') ~= 1; N = 512; end % total area size
-if exist('A', 'var') ~= 1; A = 36e-6*N/2/metric; end % half-size of the digit area
+if exist('A', 'var') ~= 1; A = 36e-6*N/4/metric; end % half-size of the digit area
 
 % coordinates of grid nodes
 x = linspace(-A, A, N+1); x(end) = [];

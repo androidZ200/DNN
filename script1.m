@@ -2,7 +2,7 @@ clear all;
 init;
 
 sigma = A/8;
-alpha = 1/360;
+alpha = pi/180/10;
 INPUT(:,:,1) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*X);
 INPUT(:,:,2) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*X);
 INPUT(:,:,3) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*Y);
@@ -42,11 +42,11 @@ for iter21=1:3
     doe_plane = doe_plane + first;
     output_plane = output_plane + first;
     INPUT = INP_save;
-    save(['data/image generation/save' num2str(iter21) '.mat'], 'DOES', 'doe_plane', 'output_plane', 'loss_graph', ...
+    save(['data/image generation/save' num2str(iter21) '_600.mat'], 'DOES', 'doe_plane', 'output_plane', 'loss_graph', ...
         'INPUT', 'OUTPUT');
     clear loss_graph;
 end
 
 
 
-clearvars iter iter21 iter22 INP_save;
+clearvars iter iter21 iter22 INP_save first;
