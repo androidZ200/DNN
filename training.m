@@ -93,9 +93,5 @@ for ep=1:epoch
 %     save('DOE.mat', 'DOES', 'z');
 end
 
-% plot(accr_graph);
-% ylim([0 100]);
-% grid on;
-
 clearvars num num2 iter7 iter8 iter9 ep epoch P me mi W F argmax Accr cycle f Target ...
     randind min_phase batch LossFunc lz tmp_intensity tmp_phase IntensityFactor;
