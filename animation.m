@@ -1,11 +1,11 @@
-
+% animation of radiation propagation through the entire DOE system
 num = randi([1 ln]);
 W = resizeimage(Test(:,:,randi([1 TestData(num)]),num),N,AN);
 
 fig = figure;
 zones = [0 z];
 for zone=1:length(z)
-    for zz = zones(zone):1:zones(zone+1)
+    for zz = zones(zone):2:zones(zone+1)
         imagesc(x, x, abs(propagation(W, zz - zones(zone), k, U)), [0 0.03]);
         axis xy;
         title(['z = ' num2str(zz)]);
@@ -20,4 +20,4 @@ end
 pause(3);
 close(fig);
 
-clearvars fig zones zone zz W;
+clearvars fig num zones zone zz W;
