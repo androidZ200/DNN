@@ -21,9 +21,6 @@ parfor iter=1:sum(TestData);
     ttt = zeros(ln);
     ttt(argmax, num) = 1;
     tabl1 = tabl1 + ttt;
-%     for nt = 1:ln
-%         tmp(nt) = get_energy(W(:,:,end), MASK(:,:,nt));
-%     end
     ttt(:,num) = tmp/sum(tmp);
     tabl2 = tabl2 + ttt;
 end
