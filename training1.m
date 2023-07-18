@@ -14,19 +14,18 @@ if exist('params', 'var') ~= 1; params = []; end
 Accr = 0;
 cycle = 64;
 lz = length(z)-1;
-f = z(2:end)-z(1:end-1);
 randind = randperm(size(Train,3));
 randind = randind(1:P);
 accr_graph(1) = nan;
 tmp_data = zeros(N,N,lz);
 
-if strcmp(LossFunc, 'Gauss')
-    Target = zeros(N,N,ln);
-    for num=1:ln
-        Target(:,:,num) = exp(-((X - coords(num,1)).^2 + (Y - coords(num,2)).^2)*(4/A)^2);
-        Target(:,:,num) = Target(:,:,num)/sqrt(sum(sum(Target(:,:,num).^2)));
-    end
+% for Gauss Loss Function
+Target = zeros(N,N,ln);
+for num=1:ln
+    Target(:,:,num) = exp(-((X - coords(num,1)).^2 + (Y - coords(num,2)).^2)*(4/A)^2);
+    Target(:,:,num) = Target(:,:,num)/sqrt(sum(sum(Target(:,:,num).^2)));
 end
+
 
 tic;
 for ep=1:epoch
@@ -37,7 +36,7 @@ for ep=1:epoch
 
             % direct propagation
             W = resizeimage(Train(:,:,randind(iter7-floor(iter8/ln)),num),N,AN);
-            [me, W, mi] = recognize(W,z,DOES,k,MASK,U,true);
+            [me, W, mi] = recognize(W,z,DOES,k,MASK,U,is_max);
             W(:,:,end) = W(:,:,end).*(rand(N) >= dropout);
 
             if max(me) == me(num)
@@ -45,30 +44,28 @@ for ep=1:epoch
             else
                 % training
                 F = zeros(N);
+                W(:,:,end) = conj(W(:,:,end));
                 switch LossFunc
                     case 'Gauss' % the integral Gaussian function
-                        F = conj(W(:,:,end)).*(abs(W(:,:,end)).^2 - Target(:,:,num));
+                        F = W(:,:,end).*(abs(W(:,:,end)).^2 - Target(:,:,num));
                     case 'MSE' % standard deviation
                         me(num) = me(num) - 1;
                         for num2=1:ln
-                            F = F + conj(W(:,:,end))*me(num2).*mi(:,:,num2);
+                            F = F + W(:,:,end)*me(num2).*mi(:,:,num2);
                         end
                     case 'SCE' % cross entropy
                         me = exp(me*5e3);
                         for num2=1:ln
-                            F = F + conj(W(:,:,end))*me(num2).*mi(:,:,num2);
+                            F = F + W(:,:,end)*me(num2).*mi(:,:,num2);
                         end
-                        F = F - conj(W(:,:,end))*sum(me).*mi(:,:,num);
+                        F = F - W(:,:,end)*sum(me).*mi(:,:,num);
                     otherwise
                         error(['Loss function "' name '" is not exist']);
                 end
-                T = zeros(N,N,lz);
                 % reverse propagation
-                for iter9=0:lz-1
-                    F = propagation(F, f(end-iter9), k, U).*DOES(:,:,end-iter9);
-                    T(:,:,end-iter9) = -imag(W(:,:,end-iter9-1).*F);
-                end
-                gradient = gradient + T;
+                F = system_propagation(F, DOES(:,:,end:-1:1), z(end)-z(end-1:-1:1), k, U);
+                F = -imag(W(:,:,1:end-1).*F(:,:,end:-1:1).*DOES);
+                gradient = gradient + F;
             end
         end
     

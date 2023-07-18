@@ -5,7 +5,7 @@ W = resizeimage(Test(:,:,randi([1 TestData(num)]),num),N,AN);
 fig = figure;
 zones = [0 z];
 for zone=1:length(z)
-    for zz = zones(zone):2:zones(zone+1)
+    for zz = zones(zone):5:zones(zone+1)
         imagesc(x, x, abs(propagation(W, zz - zones(zone), k, U)), [0 0.03]);
         axis xy;
         title(['z = ' num2str(zz)]);

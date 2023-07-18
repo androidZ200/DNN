@@ -10,7 +10,6 @@ if exist('IntensityFactor', 'var') ~= 1; IntensityFactor = 2; end
 Accr = 0;
 cycle = 64;
 lz = length(z)-1;
-f = z(2:end)-z(1:end-1);
 randind = randperm(size(Train,3));
 randind = randind(1:P);
 accr_graph(1) = nan;
@@ -40,31 +39,27 @@ for ep=1:epoch
             else
                 % training
                 F = zeros(N);
+                W(:,:,end) = conj(W(:,:,end));
                 switch LossFunc
                     case 'Gauss' % the integral Gaussian function
-                        F = conj(W(:,:,end)).*(abs(W(:,:,end)).^2 - Target(:,:,num));
+                        F = W(:,:,end).*(abs(W(:,:,end)).^2 - Target(:,:,num));
                     case 'MSE' % standard deviation
                         me(num) = me(num) - 1;
                         for num2=1:ln
-                            F = F + conj(W(:,:,end))*me(num2).*mi(:,:,num2);
+                            F = F + W(:,:,end)*me(num2).*mi(:,:,num2);
                         end
                     case 'SCE' % cross entropy
                         me = exp(me*5e3);
                         for num2=1:ln
-                            F = F + conj(W(:,:,end))*me(num2).*mi(:,:,num2);
+                            F = F + W(:,:,end)*me(num2).*mi(:,:,num2);
                         end
-                        F = F - conj(W(:,:,end))*sum(me).*mi(:,:,num);
+                        F = F - W(:,:,end)*sum(me).*mi(:,:,num);
                     otherwise
                         error(['Loss function "' name '" is not exist']);
-                end
-                tmp_phase = zeros(N,N,lz);
-                tmp_intensity = zeros(N,N,lz);
-                for iter9=0:lz-1
-                    F = propagation(F, f(end-iter9), k, U);
-                    tmp_intensity(:,:,end-iter9) = abs(W(:,:,end-iter9-1)).^IntensityFactor;
-                    tmp_phase(:,:,end-iter9) = -angle(W(:,:,end-iter9-1).*F);
-                    F = F.*DOES(:,:,end-iter9);
-                end
+                end               
+                F = system_propagation(F, DOES(:,:,end:-1:1), z(end)-z(end-1:-1:1), k, U);
+                tmp_phase = -angle(W(:,:,1:end-1).*F(:,:,end:-1:1));
+                tmp_intensity = abs(W(:,:,1:end-1)).^IntensityFactor;
                 min_phase = min_phase + tmp_phase.*tmp_intensity;
                 min_intensity = min_intensity + tmp_intensity;
             end

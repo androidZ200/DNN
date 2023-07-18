@@ -1,4 +1,4 @@
-% the Gershberg - Saxton algorithm
+% the Gershberg-Saxton algorithm
 
 if exist('P', 'var') ~= 1; P = size(Train,3); end
 if exist('epoch', 'var') ~= 1; epoch = 1; end;

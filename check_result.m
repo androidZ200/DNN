@@ -15,7 +15,7 @@ parfor iter=1:sum(TestData);
     % running through the system
     W = resizeimage(Test(:,:,it,num),N,AN);
 %     W = W(end:-1:1, :);
-    [tmp,W] = recognize(W,z,DOES,k,MASK,U,false);
+    [tmp,W] = recognize(W,z,DOES,k,MASK,U,is_max);
 
     [~, argmax] = max(tmp);
     ttt = zeros(ln);

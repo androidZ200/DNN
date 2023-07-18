@@ -1,5 +1,5 @@
 
-P = 2;
+P = 1;
 
 % colormap in shades of Samara university
 ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
@@ -16,7 +16,7 @@ for p=1:P
         % getting results
 		W = resizeimage(Test(:,:,randi([1 TestData(num)]),num),N,AN);
 %         W = W(end:-1:1, :);
-        [tmp, F] = recognize(W,z,DOES,k,MASK,U,false);
+        [tmp, F] = recognize(W,z,DOES,k,MASK,U,is_max);
 %         tmp = exp(tmp);
         tmp = tmp./sum(tmp);
 
