@@ -2,37 +2,41 @@
 
 if exist('P', 'var') ~= 1; P = size(Train,3); end
 if exist('epoch', 'var') ~= 1; epoch = 1; end
-if exist('batch', 'var') ~= 1; batch = 1; end
+if exist('batch', 'var') ~= 1; batch = 60; end
 if exist('LossFunc', 'var') ~= 1; LossFunc = 'SCE'; end
 if exist('IntensityFactor', 'var') ~= 1; IntensityFactor = 2; end
+if exist('cycle', 'var') ~= 1; cycle = 200; end
+if exist('threads', 'var') ~= 1; threads = 0; end
+if exist('deleted', 'var') ~= 1; deleted = true; end
 
-
+batch = min(batch, P);
+cycle = min(cycle, P);
 Accr = 0;
-cycle = 64;
-lz = length(z)-1;
+lz = size(DOES,3);
 randind = randperm(size(Train,3));
 randind = randind(1:P);
 accr_graph(1) = nan;
 
-if strcmp(LossFunc, 'Gauss')
+% for Gauss Loss Function
+if exist('Target', 'var') ~= 1
     Target = zeros(N,N,ln);
     for num=1:ln
-        Target(:,:,num) = exp(-((X - coords(num,1)).^2 + (Y - coords(num,2)).^2)*(4/A)^2);
-        Target(:,:,num) = Target(:,:,num)/sqrt(sum(sum(Target(:,:,num).^2)));
+        Target(:,:,num) = exp(-((X - coords(num,1)).^2 + (Y - coords(num,2)).^2)/(spixel*7)^2);
+        Target(:,:,num) = normalize_field(Target(:,:,num));
     end
 end
 
 tic;
 for ep=1:epoch
-    for iter7=batch:batch:P
+    for iter7=1:batch:P
         min_phase = zeros(N,N,lz);
         min_intensity = zeros(N,N,lz);
-        for iter8=0:batch*ln-1 % parfor
-            num = mod(iter8, ln)+1;
-
+        parfor (iter8=0:batch-1, threads) % parfor
+            num = TrainLabel(randind(iter7+iter8));
+            
             % direct propagation
-            W = resizeimage(Train(:,:,randind(iter7-floor(iter8/ln)),num),N,AN);
-            [me, W, mi] = recognize(W,z,DOES,k,MASK,U,true);
+            W = GetImage(Train(:,:,randind(iter7+iter8)));
+            [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
 
             if max(me) == me(num)
                 Accr = Accr + 1;
@@ -56,9 +60,10 @@ for ep=1:epoch
                         F = F - W(:,:,end)*sum(me).*mi(:,:,num);
                     otherwise
                         error(['Loss function "' name '" is not exist']);
-                end               
-                F = system_propagation(F, DOES(:,:,end:-1:1), z(end)-z(end-1:-1:1), k, U);
-                tmp_phase = -angle(W(:,:,1:end-1).*F(:,:,end:-1:1));
+                end
+                % find global minimum of loss function
+                F = reverse_propagation(F, Propagations, DOES);
+                tmp_phase = pi-angle(W(:,:,1:end-1).*F);
                 tmp_intensity = abs(W(:,:,1:end-1)).^IntensityFactor;
                 min_phase = min_phase + tmp_phase.*tmp_intensity;
                 min_intensity = min_intensity + tmp_intensity;
@@ -71,17 +76,22 @@ for ep=1:epoch
         DOES = exp(1i*min_phase);
 
         % data output to the console
-        if mod(iter7, cycle) == 0
-            Accr = Accr/cycle/ln*100;
+        if mod(iter7+batch-1, cycle) == 0
+            Accr = Accr/cycle*100;
             accr_graph(end+1) = Accr;
-            display(['epoch = ' num2str(ep) '; iter = ' num2str(iter7) '/' num2str(P) ...
-                 '; accr = ' num2str(accr_graph(end)) '%; time = ' num2str(toc) ';']);
+            display(['epoch = ' num2str(ep) '; iter = ' num2str(iter7+batch-1) '/' num2str(P) ...
+                 '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
             Accr = 0;
         end
     end
     DOES = exp(1i*angle(DOES));
-%     save('DOE.mat', 'DOES', 'z');
 end
 
-clearvars num num2 iter7 iter8 iter9 ep epoch P me mi W F argmax Accr cycle f Target ...
-    randind min_phase batch LossFunc lz tmp_intensity tmp_phase IntensityFactor;
+
+% clearing unnecessary variables
+clearvars num num2 iter7 iter8 iter9 ep me mi W F argmax Accr randind min_phase lz tmp_intensity tmp_phase;
+if deleted == true
+    clearvars epoch P cycle Target batch LossFunc IntensityFactor threads;
+else
+    deleted = true;
+end

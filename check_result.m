@@ -1,78 +1,76 @@
 
-tabl1 = zeros(ln); % error table
-tabl2 = zeros(ln); % intensity table
+err_tabl = zeros(ln); % error table
+int_tabl = zeros(ln); % intensity table
 
 tic;
-parfor iter=1:sum(TestData);
-    % we define the digit and the number of the digit
-    num = 1;
-    it = iter;
-    while it > TestData(num)
-        it = it - TestData(num);
-        num = num+1;
-    end
-    
+parfor iter=1:size(Test,3);
+    num = TestLabel(iter);
     % running through the system
-    W = resizeimage(Test(:,:,it,num),N,AN);
-%     W = W(end:-1:1, :);
-    [tmp,W] = recognize(W,z,DOES,k,MASK,U,is_max);
+    W = GetImage(Test(:,:,iter));
+    Scores = recognize(W,Propagations,DOES,MASK,is_max);
+    Scores = Scores(1:ln);
 
-    [~, argmax] = max(tmp);
-    ttt = zeros(ln);
-    ttt(argmax, num) = 1;
-    tabl1 = tabl1 + ttt;
-    ttt(:,num) = tmp/sum(tmp);
-    tabl2 = tabl2 + ttt;
+    [~, argmax] = max(Scores);
+    tmp_tabl = zeros(ln);
+    tmp_tabl(argmax, num) = 1;
+    err_tabl = err_tabl + tmp_tabl;
+    tmp_tabl(:,num) = Scores/sum(Scores);
+    int_tabl = int_tabl + tmp_tabl;
 end
 
-accuracy = sum(diag(tabl1))/sum(TestData)*100;
-tabl2 = tabl2./repmat(sum(tabl2, 1), [ln 1])*100;
+accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
+int_tabl = int_tabl./repmat(sum(int_tabl, 1), [ln 1])*100;
 display(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc)]);
+T = int_tabl;
+for iter=1:ln
+    T(:,iter) = sort(T(:,iter));
+end
+min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
+display(['min contrast = ' num2str(min_contrast) '%;']);
 
-clearvars argmax W iter num tmp nt ttt it;
+clearvars argmax W iter num Scores tmp_tabl T;
 return
 
 %% error table
 % output of a beautiful error table
-grad = 100;
+grad = 8;
 % figure('position', [500 500 1000 500]);
-imagesc(nums, nums, tabl1./repmat(TestData, [ln, 1])*100);
+figure;
+imagesc(0:9,0:9,err_tabl./repmat(sum(err_tabl,1), [ln, 1])*100);
 colormap([linspace(1, 32/255, grad)', linspace(1, 145/255, grad)', linspace(1, 201/255, grad)']);
 % colormap(repmat(linspace(1, 0.5, grad)', [1 3]));
 for ii = 1:ln
     for jj = 1:ln
         color = [0 0 0];
-        if tabl1(jj, ii)/TestData(ii) > 0.5
+        if err_tabl(jj, ii)/sum(err_tabl(:, ii)) > 0.5
             color = [1 1 1];
         end
-        text(ii-1, jj-1, sprintf('%.1f', tabl1(jj, ii)/TestData(ii)*100), 'fontsize', 14, 'color', color, ...
+        text(ii-1, jj-1, sprintf('%.1f', err_tabl(jj, ii)/sum(err_tabl(:, ii))*100), 'fontsize', 14, 'color', color, ...
             'HorizontalAlignment', 'center');
     end
 end
 clearvars ii jj grad color;
-accuracy = sum(diag(tabl1))/sum(TestData)*100;
+accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
 title(['accuracy = ' num2str(accuracy) '%;']);
 display(['accuracy = ' num2str(accuracy) '%;']);
 return;
 
 %% intensity table
 % output of a beautiful intensity table
-grad = 100;
+grad = 8;
 % figure('position', [500 500 1000 500]);
-imagesc(nums, nums, tabl2);
+figure;
+imagesc(0:9,0:9,int_tabl);
 colormap([linspace(1, 201/255, grad)', linspace(1, 88/255, grad)', linspace(1, 32/255, grad)']);
 % colormap(repmat(linspace(1, 0, grad)', [1 3]));
 for ii = 1:ln
     for jj = 1:ln
         color = [0 0 0];
-        if tabl2(jj, ii) > 50
-            color = [1 1 1];
-        end
-        text(ii-1, jj-1, sprintf('%.1f', tabl2(jj, ii)), 'fontsize', 14, ...
+        text(ii-1, jj-1, sprintf('%.1f', int_tabl(jj, ii)), 'fontsize', 14, ...
             'color', color, 'HorizontalAlignment', 'center');
     end
 end
-T = tabl2;
+T = int_tabl;
 for ii=1:ln
     T(:,ii) = sort(T(:,ii));
 end

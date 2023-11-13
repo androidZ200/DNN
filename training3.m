@@ -3,19 +3,23 @@
 if exist('P', 'var') ~= 1; P = size(Train,3); end
 if exist('epoch', 'var') ~= 1; epoch = 1; end;
 if exist('Iteration', 'var') ~= 1; Iteration = 1; end;
-if exist('batch', 'var') ~= 1; batch = 16; end;
+if exist('batch', 'var') ~= 1; batch = min(10, P); end;
 if exist('alghoritm', 'var') ~= 1; alghoritm = 1; end;
+if exist('cycle', 'var') ~= 1; cycle = 200; end
+if exist('deleted', 'var') ~= 1; deleted = true; end
 
-
-cycle = 64;
-Target = zeros(N,N,ln);
-for num=1:ln
-    Target(:,:,num) = exp(-((X - coords(num,1)).^2 + (Y - coords(num,2)).^2)/(A/6)^2);
-    Target(:,:,num) = Target(:,:,num)/sqrt(sum(sum(Target(:,:,num).^2)));
+% for Gauss Loss Function
+if exist('Target', 'var') ~= 1
+    Target = zeros(N,N,ln);
+    for num=1:ln
+        Target(:,:,num) = exp(-((X - coords(num,1)).^2 + (Y - coords(num,2)).^2)/2/(0.0198)^2);
+        Target(:,:,num) = normalize_field(Target(:,:,num));
+    end
 end
+
+batch = min(batch, P);
+cycle = min(cycle, P);
 H = zeros(N,N,ln);
-Accr = 0;
-FullAccr = 0;
 
 tic;
 for ep=1:epoch
@@ -28,60 +32,33 @@ for ep=1:epoch
             if alghoritm == 1 % Alghoritm GS part 1
                 % Forward propagation
                 for iter9=0:batch-1
-                    for num=1:ln
-                        W = resizeimage(Train(:,:,randind(iter7+iter9),num),N,AN);
-                        W = propagation(W, z(1), k, U);
-                        W = propagation(W.*DOES, z(2)-z(1), k, U);
-                        Tmp = Tmp + W.*Target(:,:,num);
-                        
-                        % Check accuracy
-                        if iter8 == Iteration
-                            tmp = get_scores(W, MASK, true);
-                            if tmp(num) == max(tmp)
-                                Accr = Accr + 1;
-                            end
-                            FullAccr = FullAccr + 1;
-                        end
-                    end
+                    W = GetImage(Train(:,:,randind(iter7+iter9)));
+                    W = Propagations{1}(W.*DOES);
+                    Tmp = Tmp + W.*Target(:,:,TrainLabel(randind(iter7+iter9)));
                 end
                 psi = exp(1i*angle(Tmp));
                 Tmp = zeros(N);
 
                 % Backward propagation
-                for num=1:ln
-                    H(:,:,num) = propagation(Target(:,:,num).*psi, -(z(2)-z(1)), k, U);
+                for num=1:size(Target,3)
+                    H(:,:,num) = conj(Propagations{1}(conj(Target(:,:,num).*psi)));
                 end
                  for iter9=0:batch-1
-                    for num=1:ln
-                        W = resizeimage(Train(:,:,randind(iter7+iter9),num),N,AN);
-                        W = propagation(W, z(1), k, U);
-                        Tmp = Tmp + H(:,:,num).*conj(W);
-                    end
+                    W = GetImage(Train(:,:,randind(iter7+iter9)));
+                    Tmp = Tmp + H(:,:,TrainLabel(randind(iter7+iter9))).*conj(W);
                  end
                 DOES = exp(1i*angle(Tmp));
                 
             elseif alghoritm == 2  % Alghoritm GS part 2
                 for iter9=0:batch-1
-                    for num=1:ln
-                        % Forward propagation
-                        W = resizeimage(Train(:,:,randind(iter7+iter9),num),N,AN);
-                        W = propagation(W, z(1), k, U);
-                        F = propagation(W.*DOES, z(2)-z(1), k, U);
-                        
-                        % Check accuracy
-                        if iter8 == Iteration
-                            tmp = get_scores(F, MASK, true);
-                            if tmp(num) == max(tmp)
-                                Accr = Accr + 1;
-                            end
-                            FullAccr = FullAccr + 1;
-                        end
-                        
-                        % Backward propagation
-                        F = Target(:,:,num).*exp(1i*angle(F));
-                        F = propagation(F, -(z(2)-z(1)), k, U);
-                        Tmp = Tmp + F.*conj(W);
-                    end
+                    % Forward propagation
+                    W = GetImage(Train(:,:,randind(iter7+iter9)));
+                    F = Propagations{1}(W.*DOES);
+
+                    % Backward propagation
+                    F = Target(:,:,TrainLabel(randind(iter7+iter9))).*exp(1i*angle(F));
+                    F = conj(Propagations{1}(conj(F)));
+                    Tmp = Tmp + F.*conj(W);
                 end
                 DOES = exp(1i*angle(Tmp));
                 
@@ -91,14 +68,19 @@ for ep=1:epoch
             
         end
         
-        % Display progress
+        % data output to the console
         if mod(iter7+batch-1, cycle) == 0
-            display(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
-                '; accuracy = ' num2str(Accr/FullAccr*100) '%; time = ' num2str(toc) ';']);
-            FullAccr = 0;
-            Accr = 0;
+            display(['epoch = ' num2str(ep) '/' num2str(epoch) '; iter = ' num2str(iter7+batch-1) ...
+                 '/' num2str(P) '; time = ' num2str(toc) ';']);
         end
     end
 end
 
-clearvars iter7 iter8 iter9 num Target H W F Tmp P Iteration batch cycle psi randind tmp Accr FullAccr;
+
+% clearing unnecessary variables
+clearvars iter7 iter8 iter9 num H W F Tmp psi randind ep;
+if deleted == true
+    clearvars Targeta P Iteration batch cycle epoch;
+else
+    deleted = true;
+end
