@@ -1,26 +1,97 @@
 clear all;
+pixel = 4e-6/0.001;
+spixel = pixel*2;
+lambda = 632.8e-9/0.001;
+N = 512;
 init;
+
 mnist_digits;
+% MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
-GetImage = @(W)fft2(normalize_field(resizeimage(W,N,spixel,pixel)>0));
-Propagations = { @(W)fft2(W); };
-DOES = ones(N,N,length(Propagations));
+GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), 10, U);
+Propagations = { @(W)propagation(W, 10, U); @(W)propagation(W, 10, U); };
+DOES = exp(2i*pi*rand(N,N,length(Propagations)));
 
-P = 1200;
-threads = 10;
-batch = 120;
-cycle = 120;
+epoch = 2;
+threads = 0;
+batch = 10;
+cycle = 1200;
+speed = 0.1;
+slowdown = 0.9996;
+LossFunc = 'SCE';
 method = 'Adam';
 params = [0.9 0.999 1e-8];
-IntensityFactor = 0;
-alghoritm = 2;
-training3;
+training1;
 
 check_result;
 
 return;
 % batch    <30    30   60    120     240
 % threads    0   0|4    6   8-10   10-12
+
+%%
+
+clear all;
+init;
+
+sigma = B/8;
+alpha = pi/180/10;
+Train(:,:,1) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*X);
+Train(:,:,2) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*X);
+Train(:,:,3) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*Y);
+Train(:,:,4) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*Y);
+
+TrainLabel = [1 2 3 4];
+Test = Train;
+
+
+Target(:,:,1) = ((X.^2 + Y.^2) < (B/4)^2).*((X.^2 + Y.^2) > (B/4.4)^2);
+Target(:,:,2) = (max(abs(X), abs(Y)) < B/4).*(max(abs(X), abs(Y)) > B/4.4);
+Target(:,:,3) = (max(abs(X), abs(Y)) < B/4).*(min(abs(X), abs(Y)) < B*0.05/4.4);
+Target(:,:,4) = (max(abs(X), abs(Y)) < B/4).*(abs(abs(X) - abs(Y)) <  B*0.07/4.4);
+
+for iter=1:size(Target, 3)
+    Train(:,:,iter) = normalize_field(Train(:,:,iter));
+    Target(:,:,iter) = normalize_field(Target(:,:,iter));
+end
+
+GetImage = @(W) W;
+Propagations = { @(W) propagation(W, 150, U); @(W) propagation(W, 150, U); @(W) propagation(W, 150, U); };
+DOES = ones(N,N,length(Propagations));
+MASK = zeros(size(Train));
+is_max = false;
+
+threads = 0;
+epoch = 50;
+batch = 4;
+cycle = 100;
+LossFunc = 'Target';
+method = 'Adam';
+params = [0.9 0.999 1e-8];
+training1;
+
+
+%%
+
+DOES = exp(2i*pi*rand(N,N,length(Propagations)));
+for iter=1:50
+    W = GetImage(Train(:,:,1));
+    [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
+    F = zeros(N);
+    W(:,:,end) = conj(W(:,:,end));
+
+    me = exp(me/max(me)*8);
+    for num2=1:ln
+        F = F + W(:,:,end)*me(num2).*mi(:,:,num2);
+    end
+    F = F - W(:,:,end)*sum(me).*mi(:,:,1);
+
+    F = reverse_propagation(F, Propagations, DOES);
+    DOES1 = exp(1i*(pi-angle(W(:,:,1:end-1).*F)));
+    imagesc(abs(DOES - DOES1)); colorbar; pause(0.1);
+    DOES = DOES1;
+end
+
 
 
 %%
@@ -64,3 +135,26 @@ for num=nums
     end
 end
 imwrite(circshift((angle(DOES(end:-1:1, :))+pi)/2/pi, [N/2 N/2]), 'data/experiment/DOE.bmp');
+
+%%
+N = 512;
+M = 1000;
+A = rand(N);
+B = rand(N);
+
+tic;
+for iter=1:M
+    C = A.*B;
+end
+display(['cpu time = ' num2str(toc/M)]);
+
+A = gpuArray(A);
+B = gpuArray(B);
+
+tic;
+for iter=1:M
+    C = A.*B;
+end
+display(['gpu time = ' num2str(toc/M)]);
+
+display(' ');

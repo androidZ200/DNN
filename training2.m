@@ -7,6 +7,7 @@ if exist('LossFunc', 'var') ~= 1; LossFunc = 'SCE'; end
 if exist('IntensityFactor', 'var') ~= 1; IntensityFactor = 2; end
 if exist('cycle', 'var') ~= 1; cycle = 200; end
 if exist('threads', 'var') ~= 1; threads = 0; end
+if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
 if exist('deleted', 'var') ~= 1; deleted = true; end
 
 batch = min(batch, P);
@@ -37,37 +38,43 @@ for ep=1:epoch
             % direct propagation
             W = GetImage(Train(:,:,randind(iter7+iter8)));
             [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
+            I = sum(me);
+            me = me/I;
 
             if max(me) == me(num)
                 Accr = Accr + 1;
-            else
-                % training
-                F = zeros(N);
-                W(:,:,end) = conj(W(:,:,end));
-                switch LossFunc
-                    case 'Gauss' % the integral Gaussian function
-                        F = W(:,:,end).*(abs(W(:,:,end)).^2 - Target(:,:,num));
-                    case 'MSE' % standard deviation
-                        me(num) = me(num) - 1;
-                        for num2=1:ln
-                            F = F + W(:,:,end)*me(num2).*mi(:,:,num2);
-                        end
-                    case 'SCE' % cross entropy
-                        me = exp(me*5e3);
-                        for num2=1:ln
-                            F = F + W(:,:,end)*me(num2).*mi(:,:,num2);
-                        end
-                        F = F - W(:,:,end)*sum(me).*mi(:,:,num);
-                    otherwise
-                        error(['Loss function "' name '" is not exist']);
-                end
-                % find global minimum of loss function
-                F = reverse_propagation(F, Propagations, DOES);
-                tmp_phase = pi-angle(W(:,:,1:end-1).*F);
-                tmp_intensity = abs(W(:,:,1:end-1)).^IntensityFactor;
-                min_phase = min_phase + tmp_phase.*tmp_intensity;
-                min_intensity = min_intensity + tmp_intensity;
             end
+            % training
+            F = zeros(N);
+            W(:,:,end) = conj(W(:,:,end));
+            switch LossFunc
+                case 'Target' % the integral Gaussian function
+                    F = W(:,:,end).*(abs(W(:,:,end)).^2 - Target(:,:,num));
+                case 'MSE' % standard deviation
+                    S = me;
+                    me(num) = me(num) - 1;
+                    me = (me - sum(me.*S))/I;
+                    for num2=1:ln
+                        F = F + W(:,:,end)*me(num2).*mi(:,:,num2);
+                    end
+                case 'SCE' % softmax cross entropy
+                    p = exp(sce_factor*me); 
+                    p = p/sum(p);
+                    p = p - sum(p.*me) + me(num);
+                    p(num) = p(num)-1;
+                    p = p*sce_factor/2/I;
+                    for num2=1:ln
+                        F = F + W(:,:,end)*p(num2).*mi(:,:,num2);
+                    end
+                otherwise
+                    error(['Loss function "' name '" is not exist']);
+            end
+            % find global minimum of loss function
+            F = reverse_propagation(F, Propagations, DOES);
+            tmp_phase = pi-angle(W(:,:,1:end-1).*F);
+            tmp_intensity = abs(W(:,:,1:end-1)).^IntensityFactor;
+            min_phase = min_phase + tmp_phase.*tmp_intensity;
+            min_intensity = min_intensity + tmp_intensity;
         end
     
         % updating weights
@@ -77,7 +84,7 @@ for ep=1:epoch
 
         % data output to the console
         if mod(iter7+batch-1, cycle) == 0
-            Accr = Accr/cycle*100;
+            Accr = Accr/max(cycle,batch)*100;
             accr_graph(end+1) = Accr;
             display(['epoch = ' num2str(ep) '; iter = ' num2str(iter7+batch-1) '/' num2str(P) ...
                  '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
@@ -89,9 +96,9 @@ end
 
 
 % clearing unnecessary variables
-clearvars num num2 iter7 iter8 iter9 ep me mi W F argmax Accr randind min_phase lz tmp_intensity tmp_phase;
+clearvars num num2 iter7 iter8 iter9 ep me mi W F argmax Accr randind min_phase lz tmp_intensity tmp_phase p S I;
 if deleted == true
-    clearvars epoch P cycle Target batch LossFunc IntensityFactor threads;
+    clearvars epoch P cycle Target batch LossFunc IntensityFactor threads sce_factor;
 else
     deleted = true;
 end

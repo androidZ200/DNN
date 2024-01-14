@@ -2,6 +2,7 @@
 err_tabl = zeros(ln); % error table
 int_tabl = zeros(ln); % intensity table
 
+avg_energy = 0;
 tic;
 parfor iter=1:size(Test,3);
     num = TestLabel(iter);
@@ -9,6 +10,7 @@ parfor iter=1:size(Test,3);
     W = GetImage(Test(:,:,iter));
     Scores = recognize(W,Propagations,DOES,MASK,is_max);
     Scores = Scores(1:ln);
+    avg_energy = avg_energy + sum(Scores);
 
     [~, argmax] = max(Scores);
     tmp_tabl = zeros(ln);
@@ -27,13 +29,14 @@ for iter=1:ln
 end
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
 display(['min contrast = ' num2str(min_contrast) '%;']);
+display(['avg energy = ' num2str(avg_energy/size(Test,3)*100) '%']);
 
 clearvars argmax W iter num Scores tmp_tabl T;
 return
 
 %% error table
 % output of a beautiful error table
-grad = 8;
+grad = 100;
 % figure('position', [500 500 1000 500]);
 figure;
 imagesc(0:9,0:9,err_tabl./repmat(sum(err_tabl,1), [ln, 1])*100);
@@ -53,11 +56,12 @@ clearvars ii jj grad color;
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
 title(['accuracy = ' num2str(accuracy) '%;']);
 display(['accuracy = ' num2str(accuracy) '%;']);
+clearvars ii jj grad color;
 return;
 
 %% intensity table
 % output of a beautiful intensity table
-grad = 8;
+grad = 100;
 % figure('position', [500 500 1000 500]);
 figure;
 imagesc(0:9,0:9,int_tabl);
@@ -74,7 +78,8 @@ T = int_tabl;
 for ii=1:ln
     T(:,ii) = sort(T(:,ii));
 end
-title(['min contrast = ' num2str(min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100)) '%;']);
-display(['min contrast = ' num2str(min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100)) '%;']);
+min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
+title(['min contrast = ' num2str(min_contrast) '%;']);
+display(['min contrast = ' num2str(min_contrast) '%;']);
 clearvars ii jj grad T color;
 return;

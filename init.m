@@ -8,7 +8,7 @@ f = 0.25/metric;
 if exist('N', 'var') ~= 1; N = 2^10; end % total area size
 if exist('pixel', 'var') ~= 1; pixel = lambda*f/(8e-6/metric)/N; end % pixel size
 if exist('spixel', 'var') ~= 1; spixel = 36e-6/metric; end % pixel size
-B = pixel/2*N; % half-size of the entire area
+B = pixel*N/2; % half-size of the entire area
 
 % coordinates of grid nodes
 x = linspace(-B, B, N+1); x(end) = [];
@@ -20,6 +20,6 @@ kx = linspace(-pi*N/2/B, pi*N/2/B, N+1); kx(end) = [];
 U = circshift(Kx.^2 + Ky.^2, [N/2 N/2]);
 U = sqrt(k^2 - U);
 
-is_max = false;
+is_max = true;
 
 clearvars kx Kx Ky;

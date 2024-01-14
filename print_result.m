@@ -18,7 +18,7 @@ for p=1:P
         nt = randi([1,length(ind)]);
         W = Test(:,:,ind(nt));
         [tmp, F] = recognize(GetImage(W),Propagations,DOES,MASK,is_max);
-%         tmp = exp(tmp);
+        tmp = tmp(1:ln);
         tmp = tmp./sum(tmp);
 
         % drawing images
@@ -28,7 +28,7 @@ for p=1:P
         set(gca,'xtick',[],'ytick',[]);
         axis square;
 		subplot(1, 2, 2, 'align', 'position', [0.51, 0.02, 0.47, 0.96]);
-        zoom = 2.5;
+        zoom = 1;
 		imagesc([-B B]/zoom, [-B B]/zoom, abs(F(floor(N/2-N/2/zoom+1:N/2+N/2/zoom),...
             floor(N/2-N/2/zoom+1:N/2+N/2/zoom),end)).^2);
         set(gca,'xtick',[],'ytick',[]);
@@ -38,10 +38,10 @@ for p=1:P
         % drawing numbers and squares of focus areas
         for nt=1:ln
             if tmp(nt) == max(tmp)
-                text(coords(nt, 1), coords(nt, 2)-G_size_y/2-0.3, sprintf('%.2f%%', tmp(nt)*100), ...
+                text(coords(nt, 1), coords(nt, 2)-G_size_y/2-0.1, sprintf('%.2f%%', tmp(nt)*100), ...
                     'fontsize', 14, 'color', [1, 0, 0], 'HorizontalAlignment', 'center');
             else
-                text(coords(nt, 1), coords(nt, 2)-G_size_y/2-0.3, sprintf('%.2f%%', tmp(nt)*100), ...
+                text(coords(nt, 1), coords(nt, 2)-G_size_y/2-0.1, sprintf('%.2f%%', tmp(nt)*100), ...
                     'fontsize', 14, 'HorizontalAlignment', 'center');
             end
             if nt == num
