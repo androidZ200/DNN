@@ -10,7 +10,7 @@ mnist_digits;
 
 GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), 10, U);
 Propagations = { @(W)propagation(W, 10, U); @(W)propagation(W, 10, U); };
-DOES = exp(2i*pi*rand(N,N,length(Propagations)));
+DOES = gpuArray(exp(2i*pi*rand(N,N,length(Propagations))));
 
 epoch = 2;
 threads = 0;
