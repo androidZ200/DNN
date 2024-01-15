@@ -11,7 +11,7 @@ if exist('params', 'var') ~= 1; params = []; end
 if exist('cycle', 'var') ~= 1; cycle = 200; end
 if exist('threads', 'var') ~= 1; threads = 0; end
 if exist('deleted', 'var') ~= 1; deleted = true; end
-if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations)); end
+if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = gpuArray(ones(N,N,length(Propagations))); end
 if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
 if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
 
@@ -21,11 +21,11 @@ Accr = 0;
 randind = randperm(size(Train,3));
 randind = randind(1:P);
 accr_graph(1) = nan;
-tmp_data = zeros(N,N,size(DOES,3));
+tmp_data = gpuArray(zeros(N,N,size(DOES,3)));
 
 % for Gauss Loss Function
 if exist('Target', 'var') ~= 1
-    Target = zeros(N,N,ln);
+    Target = gpuArray(zeros(N,N,ln));
     for num=1:ln
         Target(:,:,num) = exp(-((X - coords(num,1)).^2 + (Y - coords(num,2)).^2)/(spixel*7)^2);
         Target(:,:,num) = normalize_field(Target(:,:,num));
@@ -36,7 +36,7 @@ end
 tic;
 for ep=1:epoch
     for iter7=1:batch:P
-        gradient = zeros(N,N,size(DOES,3));
+        gradient = gpuArray(zeros(N,N,size(DOES,3)));
         parfor (iter8=0:batch-1, threads)
             num = TrainLabel(randind(iter7+iter8));
 
@@ -50,7 +50,7 @@ for ep=1:epoch
                 Accr = Accr + 1;
             end
             % training
-            F = zeros(N);
+            F = gpuArray(zeros(N));
             W(:,:,end) = conj(W(:,:,end));
             switch LossFunc
                 case 'Target' % the integral Gaussian function

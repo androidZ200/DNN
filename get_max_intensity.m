@@ -4,4 +4,5 @@ function [E, ind_max] = get_max_intensity(W, MASK)
     % coordinates of the maximum intensity
     ind_max = zeros(size(W));
     ind_max(index) = 1;
+    ind_max = gpuArray(ind_max);
 end

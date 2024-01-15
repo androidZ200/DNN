@@ -20,7 +20,7 @@ accr_graph(1) = nan;
 
 % for Gauss Loss Function
 if exist('Target', 'var') ~= 1
-    Target = zeros(N,N,ln);
+    Target = gpuArray(zeros(N,N,ln));
     for num=1:ln
         Target(:,:,num) = exp(-((X - coords(num,1)).^2 + (Y - coords(num,2)).^2)/(spixel*7)^2);
         Target(:,:,num) = normalize_field(Target(:,:,num));
@@ -30,9 +30,9 @@ end
 tic;
 for ep=1:epoch
     for iter7=1:batch:P
-        min_phase = zeros(N,N,lz);
-        min_intensity = zeros(N,N,lz);
-        parfor (iter8=0:batch-1, threads) % parfor
+        min_phase = gpuArray(zeros(N,N,lz));
+        min_intensity = gpuArray(zeros(N,N,lz));
+        parfor (iter8=0:batch-1, threads)
             num = TrainLabel(randind(iter7+iter8));
             
             % direct propagation
@@ -45,7 +45,7 @@ for ep=1:epoch
                 Accr = Accr + 1;
             end
             % training
-            F = zeros(N);
+            F = gpuArray(zeros(N));
             W(:,:,end) = conj(W(:,:,end));
             switch LossFunc
                 case 'Target' % the integral Gaussian function

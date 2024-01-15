@@ -6,5 +6,6 @@ function W = resizeimage(Image, N, source_pixel, next_pixel)
     yy = xx';
 	W = interp2(x, y, double(Image), xx, yy, 'nearest');
     W(isnan(W)) = 0;
+    W = gpuArray(W);
 end
 

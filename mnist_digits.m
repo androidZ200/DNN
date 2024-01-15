@@ -37,7 +37,7 @@ hh = (1.2e-3/metric - G_size_y)/2;
 coords = [-1.5*aa -hh; -0.5*aa -hh; 0.5*aa -hh; 1.5*aa -hh; ...
           -1.5*aa   0;                          1.5*aa   0; ...
           -1.5*aa  hh; -0.5*aa  hh; 0.5*aa  hh; 1.5*aa  hh];
-MASK = zeros(N,N,ln);
+MASK = gpuArray(zeros(N,N,ln));
 for iter99=1:ln
     MASK(:,:,iter99) = (abs(X-coords(iter99,1)) < G_size_x/2).*(abs(Y-coords(iter99,2)) < G_size_y/2);
 end

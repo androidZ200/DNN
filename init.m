@@ -13,12 +13,15 @@ B = pixel*N/2; % half-size of the entire area
 % coordinates of grid nodes
 x = linspace(-B, B, N+1); x(end) = [];
 [X, Y] = meshgrid(x, x);
+X = gpuArray(X);
+Y = gpuArray(Y);
 
 % U - needed for the propagation operator
 kx = linspace(-pi*N/2/B, pi*N/2/B, N+1); kx(end) = [];
 [Kx, Ky] = meshgrid(kx, kx);
 U = circshift(Kx.^2 + Ky.^2, [N/2 N/2]);
 U = sqrt(k^2 - U);
+U = gpuArray(U);
 
 is_max = true;
 
