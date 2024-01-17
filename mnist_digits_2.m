@@ -36,6 +36,5 @@ MASK = zeros(N,N,ln);
 for iter99=1:ln
     MASK(:,:,iter99) = (abs(X-coords(iter99,1)) < G_size_x/2).*(abs(Y-coords(iter99,2)) < G_size_y/2);
 end
-% MASK(:,:,ln+1) = ones(N) - (sum(MASK, 3) > 0);
 
 clearvars ind aa hh iter99 nums tmp_label;

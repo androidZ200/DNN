@@ -1,6 +1,5 @@
 function y = sinc( x )
-    c = sin(pi*x)./(pi*x);
-    c(isnan(c)) = 1;
-    y = c;
+    y = sin(pi*x)./(pi*x);
+    y(isnan(y)) = 1;
 end
 

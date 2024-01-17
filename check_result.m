@@ -2,22 +2,29 @@
 err_tabl = zeros(ln); % error table
 int_tabl = zeros(ln); % intensity table
 
-avg_energy = 0;
+if ~is_max; avg_energy = 0; end
+batch = 40;
 tic;
-parfor iter=1:size(Test,3);
-    num = TestLabel(iter);
+parfor iter=1:size(Test,3)/batch
+    num = TestLabel((iter-1)*batch+1:iter*batch)';
     % running through the system
-    W = GetImage(Test(:,:,iter));
+    W = GetImage(Test(:,:,(iter-1)*batch+1:iter*batch));
     Scores = recognize(W,Propagations,DOES,MASK,is_max);
-    Scores = Scores(1:ln);
-    avg_energy = avg_energy + sum(Scores);
+    Scores = Scores(1:ln,:);
+    if ~is_max; avg_energy = avg_energy + sum(sum(Scores)); end
 
+    % errors
     [~, argmax] = max(Scores);
-    tmp_tabl = zeros(ln);
-    tmp_tabl(argmax, num) = 1;
-    err_tabl = err_tabl + tmp_tabl;
-    tmp_tabl(:,num) = Scores/sum(Scores);
-    int_tabl = int_tabl + tmp_tabl;
+    tmp_tabl = zeros(ln, ln, batch);
+    tmp_tabl(argmax + ln*(num-1) + ln^2*(0:(batch-1))) = 1;
+    err_tabl = err_tabl + sum(tmp_tabl,3);
+    
+    % intensity
+    Scores = bsxfun(@rdivide,Scores,sum(Scores));
+    tmp_tabl = zeros(ln, ln*batch);
+    tmp_tabl(:, num+(0:batch-1)*ln) = Scores;
+    tmp_tabl = reshape(tmp_tabl, ln, ln, []);
+    int_tabl = int_tabl + sum(tmp_tabl,3);
 end
 
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
@@ -29,10 +36,14 @@ for iter=1:ln
 end
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
 display(['min contrast = ' num2str(min_contrast) '%;']);
-display(['avg energy = ' num2str(avg_energy/size(Test,3)*100) '%']);
+if ~is_max
+    avg_energy = avg_energy/size(Test,3);
+    display(['avg energy = ' num2str(avg_energy*100) '%']);
+end
 
-clearvars argmax W iter num Scores tmp_tabl T;
+clearvars argmax W iter num Scores tmp_tabl T batch;
 return
+
 
 %% error table
 % output of a beautiful error table
@@ -58,6 +69,7 @@ title(['accuracy = ' num2str(accuracy) '%;']);
 display(['accuracy = ' num2str(accuracy) '%;']);
 clearvars ii jj grad color;
 return;
+
 
 %% intensity table
 % output of a beautiful intensity table

@@ -9,12 +9,11 @@ mnist_digits;
 % MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
 GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), 10, U);
-Propagations = { @(W)propagation(W, 10, U); @(W)propagation(W, 10, U); };
+Propagations = { @(W)propagation(W, 10, U); };
 DOES = exp(2i*pi*rand(N,N,length(Propagations)));
 
-epoch = 2;
-threads = 0;
-batch = 10;
+epoch = 5;
+batch = 20;
 cycle = 1200;
 speed = 0.1;
 slowdown = 0.9996;
@@ -136,6 +135,8 @@ for num=nums
 end
 imwrite(circshift((angle(DOES(end:-1:1, :))+pi)/2/pi, [N/2 N/2]), 'data/experiment/DOE.bmp');
 
+%%
+gpuDevice
 %%
 N = 512;
 M = 1000;
