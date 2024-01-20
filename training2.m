@@ -8,9 +8,10 @@ if exist('IntensityFactor', 'var') ~= 1; IntensityFactor = 2; end
 if exist('cycle', 'var') ~= 1; cycle = 200; end
 if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
 if exist('deleted', 'var') ~= 1; deleted = true; end
+if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations)); end
+if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
 
 batch = min(batch, P);
-cycle = min(cycle, P);
 Accr = 0;
 randind = randperm(size(Train,3));
 randind = randind(1:P);
@@ -21,7 +22,7 @@ if exist('Target', 'var') ~= 1
     Target = (bsxfun(@minus,X,permute(coords(:,1), [3 2 1])).^2 + ...
               bsxfun(@minus,Y,permute(coords(:,2), [3 2 1])).^2) ...
               /(spixel*7)^2;
-    Target = normalize_field(exp(-Target));
+    Target = normalize_field(exp(-Target)).^2;
 end
 Target = permute(Target, [1 2 4 3]);
 
@@ -38,23 +39,23 @@ for ep=1:epoch
         Accr = Accr + sum(max(me) == me(num+(0:batch-1)*size(MASK,3)));
 
         % training
-        We = conj(W(:,:,end,:));
+        Wend = conj(W(:,:,end,:));
         W(:,:,end,:) = [];
         switch LossFunc
             case 'Target' % the integral Gaussian function
-                F = 4*We.*(abs(We).^2 - Target(:,:,1,num));
+                F = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
             case 'MSE' % standard deviation
                 S = me;
                 me(num+(0:batch-1)*size(MASK,3)) = me(num+(0:batch-1)*size(MASK,3)) - 1;
                 me = bsxfun(@rdivide,(bsxfun(@minus,me,sum(me.*S))),4*I);
-                F = sum(bsxfun(@times,bsxfun(@times,We,permute(me,[3 4 1 2])),mi),3);
+                F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(me,[3 4 1 2])),mi),3);
             case 'SCE' % softmax cross entropy
                 p = exp(sce_factor*me); 
                 p = bsxfun(@rdivide,p,sum(p));
                 p = bsxfun(@minus,p,bsxfun(@minus,sum(p.*me),me(num+(0:batch-1)*size(MASK,3))));
                 p(num+(0:batch-1)*size(MASK,3)) = p(num+(0:batch-1)*size(MASK,3))-1;
                 p = bsxfun(@rdivide,p*sce_factor*2,I);
-                F = sum(bsxfun(@times,bsxfun(@times,We,permute(p,[3 4 1 2])),mi),3);
+                F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
             otherwise
                 error(['Loss function "' name '" is not exist']);
         end
@@ -79,12 +80,11 @@ for ep=1:epoch
             Accr = 0;
         end
     end
-    DOES = exp(1i*angle(DOES));
+    DOES = DOES_MASK.*exp(1i*angle(DOES));
 end
 
-
 % clearing unnecessary variables
-clearvars num num2 iter7 iter8 iter9 ep me mi W F argmax Accr randind min_phase lz tmp_intensity tmp_phase p S I;
+clearvars num num2 iter7 iter8 iter9 ep me mi W Wend F argmax Accr randind min_phase lz tmp_intensity tmp_phase p S I;
 if deleted == true
     clearvars epoch P cycle Target batch LossFunc IntensityFactor sce_factor;
 else

@@ -27,41 +27,41 @@ if exist('Target', 'var') ~= 1
     Target = (bsxfun(@minus,X,permute(coords(:,1), [3 2 1])).^2 + ...
               bsxfun(@minus,Y,permute(coords(:,2), [3 2 1])).^2) ...
               /(spixel*7)^2;
-    Target = normalize_field(exp(-Target));
+    Target = normalize_field(exp(-Target)).^2;
 end
 Target = permute(Target, [1 2 4 3]);
-
 
 tic;
 for ep=1:epoch
     for iter7=1:batch:P
         num = TrainLabel(randind(iter7+(0:batch-1)))';
+        inum = num+(0:batch-1)*size(MASK,3);
 
         % direct propagation
         W = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
         [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
         I = sum(me);
         me = bsxfun(@rdivide,me,I);
-        Accr = Accr + sum(max(me) == me(num+(0:batch-1)*size(MASK,3)));
+        Accr = Accr + sum(max(me) == me(inum));
         
         % training
-        We = conj(W(:,:,end,:));
+        Wend = conj(W(:,:,end,:));
         W(:,:,end,:) = [];
         switch LossFunc
             case 'Target' % the integral Gaussian function
-                F = 4*We.*(abs(We).^2 - Target(:,:,1,num));
+                F = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
             case 'MSE' % standard deviation
-                S = me;
-                me(num+(0:batch-1)*size(MASK,3)) = me(num+(0:batch-1)*size(MASK,3)) - 1;
-                me = bsxfun(@rdivide,(bsxfun(@minus,me,sum(me.*S))),4*I);
-                F = sum(bsxfun(@times,bsxfun(@times,We,permute(me,[3 4 1 2])),mi),3);
+                p = me;
+                p(inum) = p(inum) - 1;
+                p = 4*bsxfun(@rdivide,(bsxfun(@minus,p,sum(me.*p))),I);
+                F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
             case 'SCE' % softmax cross entropy
                 p = exp(sce_factor*me); 
                 p = bsxfun(@rdivide,p,sum(p));
-                p = bsxfun(@minus,p,bsxfun(@minus,sum(p.*me),me(num+(0:batch-1)*size(MASK,3))));
-                p(num+(0:batch-1)*size(MASK,3)) = p(num+(0:batch-1)*size(MASK,3))-1;
+                p = bsxfun(@minus,p,bsxfun(@minus,sum(p.*me),me(inum)));
+                p(inum) = p(inum)-1;
                 p = bsxfun(@rdivide,p*sce_factor*2,I);
-                F = sum(bsxfun(@times,bsxfun(@times,We,permute(p,[3 4 1 2])),mi),3);
+                F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
             otherwise
                 error(['Loss function "' name '" is not exist']);
         end
@@ -87,7 +87,7 @@ for ep=1:epoch
 end
 
 % clearing unnecessary variables
-clearvars num num2 iter7 iter8 iter9 ep me mi W We F T Accr Target randind gradient p S I;
+clearvars num inum iter7 ep me mi W Wend F Accr Target randind gradient p I;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle deleted Target tmp_data sce_factor;
 else

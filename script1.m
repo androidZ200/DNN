@@ -29,8 +29,11 @@ return;
 % threads    0   0|4    6   8-10   10-12
 
 %%
+% example image generation
 
 clear all;
+pixel = 18e-6/0.001;
+N = 512;
 init;
 
 sigma = B/8;
@@ -39,36 +42,30 @@ Train(:,:,1) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*X);
 Train(:,:,2) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*X);
 Train(:,:,3) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*Y);
 Train(:,:,4) = exp(-(X.^2 + Y.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*Y);
-
-TrainLabel = [1 2 3 4];
+Train = normalize_field(Train)*1e3;
+TrainLabel = [1; 2; 3; 4];
 Test = Train;
-
 
 Target(:,:,1) = ((X.^2 + Y.^2) < (B/4)^2).*((X.^2 + Y.^2) > (B/4.4)^2);
 Target(:,:,2) = (max(abs(X), abs(Y)) < B/4).*(max(abs(X), abs(Y)) > B/4.4);
 Target(:,:,3) = (max(abs(X), abs(Y)) < B/4).*(min(abs(X), abs(Y)) < B*0.05/4.4);
 Target(:,:,4) = (max(abs(X), abs(Y)) < B/4).*(abs(abs(X) - abs(Y)) <  B*0.07/4.4);
+Target = (normalize_field(Target)*1e3).^2;
 
-for iter=1:size(Target, 3)
-    Train(:,:,iter) = normalize_field(Train(:,:,iter));
-    Target(:,:,iter) = normalize_field(Target(:,:,iter));
-end
-
-GetImage = @(W) W;
-Propagations = { @(W) propagation(W, 150, U); @(W) propagation(W, 150, U); @(W) propagation(W, 150, U); };
-DOES = ones(N,N,length(Propagations));
+GetImage = @(W) propagation(W, 150, U);
+Propagations = { @(W)propagation(W, 150, U); @(W)propagation(W, 150, U); @(W)propagation(W, 150, U); };
 MASK = zeros(size(Train));
-is_max = false;
 
-threads = 0;
-epoch = 50;
+epoch = 8000;
 batch = 4;
-cycle = 100;
+cycle = 800;
+speed = 1;
+slowdown = 0.9992;
 LossFunc = 'Target';
 method = 'Adam';
 params = [0.9 0.999 1e-8];
 training1;
-
+return;
 
 %%
 
