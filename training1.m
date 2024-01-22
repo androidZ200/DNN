@@ -13,6 +13,8 @@ if exist('deleted', 'var') ~= 1; deleted = true; end
 if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations)); end
 if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
 if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
+if exist('max_offsets', 'var') ~= 1; max_offsets = 0; end
+
 
 
 batch = min(batch, P);
@@ -37,6 +39,13 @@ for ep=1:epoch
         num = TrainLabel(randind(iter7+(0:batch-1)))';
         inum = num+(0:batch-1)*size(MASK,3);
 
+        % rand offsets
+        off = randi(max_offsets*2+1, size(DOES,3), 2)-max_offsets-1;
+        for iter8 = 1:size(DOES,3)
+            DOES(:,:,iter8) = circshift(DOES(:,:,iter8), off);
+            tmp_data(:,:,iter8) = circshift(tmp_data(:,:,iter8), off);
+        end
+        
         % direct propagation
         W = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
         [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
@@ -74,6 +83,12 @@ for ep=1:epoch
         DOES = DOES.*exp(-1i*speed*gradient);
         speed = speed*slowdown;
 
+        % reverse offsets
+        for iter8 = 1:size(DOES,3)
+            DOES(:,:,iter8) = circshift(DOES(:,:,iter8), -off);
+            tmp_data(:,:,iter8) = circshift(tmp_data(:,:,iter8), -off);
+        end
+        
         % data output to the console
         if mod(iter7+batch-1 + ep*P, cycle) == 0
             Accr = Accr/max(cycle,batch)*100;
@@ -87,7 +102,7 @@ for ep=1:epoch
 end
 
 % clearing unnecessary variables
-clearvars num inum iter7 ep me mi W Wend F Accr Target randind gradient p I;
+clearvars num inum iter7 iter8 ep me mi W Wend F Accr Target randind gradient p I off;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle deleted Target tmp_data sce_factor;
 else

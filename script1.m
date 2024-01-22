@@ -6,6 +6,39 @@ N = 512;
 init;
 
 mnist_digits;
+
+GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), 10, U);
+Propagations = { @(W)propagation(W, 10, U); };
+
+for iter3 = 0:2
+    DOES = exp(2i*pi*rand(N,N,length(Propagations)));
+
+    epoch = 5;
+    batch = 20;
+    cycle = 1200;
+    speed = 0.1;
+    slowdown = 0.9996;
+    LossFunc = 'SCE';
+    method = 'Adam';
+    params = [0.9 0.999 1e-8];
+    max_offsets = iter3;
+    training1;
+
+    check_offsets;
+    save(['offsets_' num2str(iter3)]);
+end
+
+return;
+
+%%
+clear all;
+pixel = 4e-6/0.001;
+spixel = pixel*2;
+lambda = 632.8e-9/0.001;
+N = 512;
+init;
+
+mnist_digits;
 % MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
 GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), 10, U);
