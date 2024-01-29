@@ -67,7 +67,7 @@ for ep=1:epoch
         end
         % reverse propagation
         F = reverse_propagation(F, Propagations, DOES);
-        gradient = -imag(sum(bsxfun(@times,W,F),4).*DOES);
+        gradient = -imag(sum(W.*F, 4).*DOES);
     
         % updating weights
         [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, 1+((iter7-1)+P*(ep-1))/batch]);
