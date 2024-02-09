@@ -13,53 +13,57 @@ if exist('deleted', 'var') ~= 1; deleted = true; end
 if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations)); end
 if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
 if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
-
+if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln); end
+if exist('iter_gradient', 'var') ~= 1; iter_gradient = 0; end
 
 batch = min(batch, P);
 Accr = 0;
-randind = randperm(size(Train,3));
-randind = randind(1:P);
 accr_graph(1) = nan;
-tmp_data = zeros(N,N,size(DOES,3));
+if exist('tmp_data', 'var') ~= 1;
+    tmp_data = zeros(N,N,size(DOES,3));
+end
 
 % for Gauss Loss Function
-if exist('Target', 'var') ~= 1
-    Target = (bsxfun(@minus,X,permute(coords(:,1), [3 2 1])).^2 + ...
-              bsxfun(@minus,Y,permute(coords(:,2), [3 2 1])).^2) ...
-              /(spixel*7)^2;
-    Target = normalize_field(exp(-Target)).^2;
+if strcmp(LossFunc, 'Target')
+    if exist('Target', 'var') ~= 1
+        Target = (bsxfun(@minus,X,permute(coords(:,1), [3 2 1])).^2 + ...
+                  bsxfun(@minus,Y,permute(coords(:,2), [3 2 1])).^2) ...
+                  /(spixel*7)^2;
+        Target = normalize_field(exp(-Target)).^2;
+    end
+    Target = permute(Target, [1 2 4 3]);
 end
-Target = permute(Target, [1 2 4 3]);
 
 tic;
 for ep=1:epoch
+    randind = randperm(size(Train,3));
+    randind = randind(1:P);
     for iter7=1:batch:P
         num = TrainLabel(randind(iter7+(0:batch-1)))';
-        inum = num+(0:batch-1)*size(MASK,3);
 
         % direct propagation
         W = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
         [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
         I = sum(me);
         me = bsxfun(@rdivide,me,I);
-        Accr = Accr + sum(max(me) == me(inum));
+        Accr = Accr + sum(max(me) == me(num+(0:batch-1)*size(MASK,3)));
         
         % training
         Wend = conj(W(:,:,end,:));
         W(:,:,end,:) = [];
         switch LossFunc
-            case 'Target' % the integral Gaussian function
+            case 'Target' % the integral Target function
                 F = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
-            case 'MSE' % standard deviation
+            case 'MSE' % mean squared error
                 p = me;
-                p(inum) = p(inum) - 1;
+                p = p - target_scores(:,num);
                 p = 4*bsxfun(@rdivide,(bsxfun(@minus,p,sum(me.*p))),I);
                 F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
             case 'SCE' % softmax cross entropy
                 p = exp(sce_factor*me); 
                 p = bsxfun(@rdivide,p,sum(p));
-                p = bsxfun(@minus,p,bsxfun(@minus,sum(p.*me),me(inum)));
-                p(inum) = p(inum)-1;
+                alpha = target_scores(:,num);
+                p =  bsxfun(@plus,bsxfun(@times,bsxfun(@minus,p,sum(p.*me)),sum(alpha)),sum(alpha.*me)) - alpha;
                 p = bsxfun(@rdivide,p*sce_factor*2,I);
                 F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
             otherwise
@@ -70,7 +74,8 @@ for ep=1:epoch
         gradient = -imag(sum(W.*F, 4).*DOES);
     
         % updating weights
-        [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, 1+((iter7-1)+P*(ep-1))/batch]);
+        iter_gradient = iter_gradient + 1;
+        [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, iter_gradient]);
         DOES = DOES.*exp(-1i*speed*gradient);
         speed = speed*slowdown;
 
@@ -78,8 +83,8 @@ for ep=1:epoch
         if mod(iter7+batch-1 + ep*P, cycle) == 0
             Accr = Accr/max(cycle,batch)*100;
             accr_graph(end+1) = Accr;
-            display(['epoch = ' num2str(ep) '/' num2str(epoch) '; iter = ' num2str(iter7+batch-1) ...
-                 '/' num2str(P) '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
+            display(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
+                '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
             Accr = 0;
         end
     end
@@ -87,10 +92,13 @@ for ep=1:epoch
 end
 
 % clearing unnecessary variables
-clearvars num inum iter7 ep me mi W Wend F Accr Target randind gradient p I;
+clearvars num iter7 ep me mi W Wend F Accr randind gradient p I alpha;
 if deleted == true
-    clearvars P epoch speed slowdown batch LossFunc method params cycle deleted Target tmp_data sce_factor;
+    clearvars P epoch speed slowdown batch LossFunc method params cycle ...
+        deleted Target tmp_data sce_factor target_scores iter_gradient;
 else
     deleted = true;
-    Target = permute(Target, [1 2 4 3]);
+    if strcmp(LossFunc, 'Target')
+        Target = permute(Target, [1 2 4 3]);
+    end
 end

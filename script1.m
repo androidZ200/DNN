@@ -1,30 +1,84 @@
 %% standart gradient training
 
 clear all;
-pixel = 4e-6/0.001;
+pixel = 4e-6;
 spixel = pixel*2;
-lambda = 632.8e-9/0.001;
+lambda = 632.8e-9;
 N = 512;
+is_max = false;
 init;
 
 mnist_digits;
 % MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
-GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), 10, U);
-Propagations = { @(W)propagation(W, 10, U); };
-DOES = exp(2i*pi*rand(N,N,length(Propagations)));
+z = [0 0.01 0.02];
+Propagations = [];
+GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), z(2)-z(1), U);
+for iter=3:length(z)
+    Propagations{end+1} = @(W)propagation(W, z(iter)-z(iter-1), U);
+end
 
-epoch = 5;
+DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
+
+epoch = 4;
 batch = 20;
-cycle = 1200;
-speed = 0.1;
-slowdown = 0.9996;
+cycle = 1500;
+speed = 0.3;
+slowdown = 0.9995;
 LossFunc = 'SCE';
 method = 'Adam';
 params = [0.9 0.999 1e-8];
 training1;
 
 check_result;
+return;
+
+%% iterative alghoritm
+
+clear all;
+metric = 1;
+N = 256/2;
+spixel = 8e-6/metric;
+lambda = 632.8e-9/metric;
+is_max = true;
+G_size_x = 0.05e-3/metric;
+G_size_y = 0.05e-3/metric;
+z = [0 0.01 0.02]/metric;
+DOES = exp(2i*pi*(rand(N,N,length(z)-2)-0.5)/10);
+DOES_MASK = ones(N,N,size(DOES,3));
+tmp_data = zeros(N,N,size(DOES,3));
+
+epoch = 4;
+cycle = 1500;
+speed = 0.3;
+slowdown = 0.9995;
+LossFunc = 'SCE';
+method = 'Adam';
+params = [0.9 0.999 1e-8];
+%%
+N = N*2;
+pixel = 4e-6*512/N/metric;
+init;
+aa = (0.6e-3/metric - G_size_x)/3;
+hh = (0.4e-3/metric - G_size_y)/2;
+mnist_digits;
+target_scores = ones(ln)*0.05 + eye(ln)*0.5;
+Propagations = [];
+GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), z(2)-z(1), U);
+for iter=3:length(z)
+    Propagations{end+1} = @(W)propagation(W, z(iter)-z(iter-1), U);
+end
+
+DOES = kron(DOES, ones(2));
+DOES_MASK = kron(DOES_MASK, ones(2));
+tmp_data = kron(tmp_data, ones(2));
+
+batch = 20;
+deleted = false;
+training1;
+epoch = 1;
+check_result;
+
 return;
 
 %% test no-gradient training
@@ -93,9 +147,10 @@ return;
 
 %% phase function doe
 
-ssau = [linspace(255,  32, 80), linspace( 32,  40, 80), linspace(40,  255, 80);...
-        linspace(255, 146, 80), linspace(146,  40, 80), linspace(40,  255, 80);...
-        linspace(255, 201, 80), linspace(201,  40, 80), linspace(40,  255, 80)]'/255;
+ssau = [linspace(40,  32, 40), linspace( 32,  255, 40), linspace(255, 201, 40), linspace(201, 40, 40);...
+        linspace(40, 146, 40), linspace(146,  255, 40), linspace(255,  88, 40), linspace( 88, 40, 40);...
+        linspace(40, 201, 40), linspace(201,  255, 40), linspace(255,  32, 40), linspace( 32, 40, 40)]'/255;
+ssau(1:40:end,:) = [];
 
 for iter=1:size(DOES,3)
     figure;

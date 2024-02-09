@@ -3,7 +3,7 @@ err_tabl = zeros(ln); % error table
 int_tabl = zeros(ln); % intensity table
 
 if ~is_max; avg_energy = 0; end
-batch = 40;
+if exist('batch', 'var') ~= 1; batch = 40; end
 tic;
 parfor iter=1:size(Test,3)/batch
     num = TestLabel((iter-1)*batch+1:iter*batch)';

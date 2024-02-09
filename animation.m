@@ -5,13 +5,15 @@ score = recognize(propagation(W, 10, U), Propagations, DOES, MASK, is_max);
 score = score/sum(score)*100;
 
 fig = figure;
-imagesc(x, x, abs(W), [0 0.02]);
+imagesc(x, x, abs(W));
+title(['z = ' num2str(z(1)) ' mm']);
 pause(3);
-zones = [0 10 20];
+zones = z;
+h = (z(end)-z(1))/100;
 for zone=1:length(zones)-1
-    for zz = zones(zone):0.2:zones(zone+1)
-        imagesc(x, x, abs(propagation(W, zz - zones(zone), U)), [0 0.01]);
-        title(['z = ' num2str(zz)]);
+    for zz = zones(zone):h:zones(zone+1)
+        imagesc(x, x, abs(propagation(W, zz - zones(zone), U)));
+        title(['z = ' num2str(zz*metric*1000) ' mm']);
         pause(0.05);
     end
     W = propagation(W, zones(zone+1)-zones(zone), U);
@@ -20,15 +22,15 @@ for zone=1:length(zones)-1
     end
 end
 hold on;
-xx = [-1 -1 1 1 -1]*G_size_x/2;
-yy = [1 -1 -1 1 1]*G_size_y/2;
+xx = [-1 -1  1  1 -1]*G_size_x/2;
+yy = [ 1 -1 -1  1  1]*G_size_y/2;
 for nt=1:ln
     plot(xx+coords(nt,1), yy+coords(nt,2), 'color', [1 1 1]);
-    text(coords(nt, 1), coords(nt, 2)-G_size_y/2-0.1, sprintf('%.2f%%', score(nt)), ...
+    text(coords(nt, 1), coords(nt, 2)-G_size_y/2*1.5, sprintf('%.2f%%', score(nt)), ...
                     'fontsize', 14, 'HorizontalAlignment', 'center', 'color', [1 1 1]);
 end
 
 pause(6);
 close(fig);
 
-clearvars fig zones zone zz W nt xx yy score;
+clearvars fig zones zone zz W nt xx yy score h;
