@@ -1,6 +1,6 @@
 % setting the system parameters
 
-if exist('metric', 'var') ~= 1; metric = 0.001; end % metric (in millimeters)
+if exist('metric', 'var') ~= 1; metric = 1; end % metric (in meters)
 if exist('lambda', 'var') ~= 1; lambda = 0.532e-6/metric; end  % wavelength
 k = 2*pi/lambda;
 
@@ -20,6 +20,6 @@ kx = linspace(-pi*N/2/B, pi*N/2/B, N+1); kx(end) = [];
 U = circshift(Kx.^2 + Ky.^2, [N/2 N/2]);
 U = sqrt(k^2 - U);
 
-is_max = true;
+if exist('is_max', 'var') ~= 1; is_max = true; end  % find max or sum in MASKs
 
 clearvars kx Kx Ky;

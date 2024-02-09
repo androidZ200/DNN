@@ -1,5 +1,5 @@
 
-P = 1;
+P = 5;
 
 % colormap in shades of Samara university
 ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
@@ -10,9 +10,9 @@ ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
 xx = [-1 -1 1 1 -1]*G_size_x/2;
 yy = [1 -1 -1 1 1]*G_size_y/2;
        
-fig = figure('position', [100 100 1000 500]);
-for p=1:P
-	for num=1:ln
+fig = figure('position', [100 100 1500 400]);
+for num=1:ln
+    for p=1:P
         % getting results
         ind = find(TestLabel == num);
         nt = randi([1,length(ind)]);
@@ -23,12 +23,12 @@ for p=1:P
 
         % drawing images
         colormap(ssau);
-		subplot(1, 2, 1, 'align', 'position', [0.02, 0.02, 0.47, 0.96]);
+		subplot(1, 3, 1);
 		imagesc(abs(W));
         set(gca,'xtick',[],'ytick',[]);
         axis square;
-		subplot(1, 2, 2, 'align', 'position', [0.51, 0.02, 0.47, 0.96]);
-        zoom = 1;
+		subplot(1, 3, 2);
+        zoom = 2;
 		imagesc([-B B]/zoom, [-B B]/zoom, abs(F(floor(N/2-N/2/zoom+1:N/2+N/2/zoom),...
             floor(N/2-N/2/zoom+1:N/2+N/2/zoom),end)).^2);
         set(gca,'xtick',[],'ytick',[]);
@@ -37,21 +37,20 @@ for p=1:P
 
         % drawing numbers and squares of focus areas
         for nt=1:ln
-            if tmp(nt) == max(tmp)
-                text(coords(nt, 1), coords(nt, 2)-G_size_y/2-0.1, sprintf('%.2f%%', tmp(nt)*100), ...
-                    'fontsize', 14, 'color', [1, 0, 0], 'HorizontalAlignment', 'center');
-            else
-                text(coords(nt, 1), coords(nt, 2)-G_size_y/2-0.1, sprintf('%.2f%%', tmp(nt)*100), ...
-                    'fontsize', 14, 'HorizontalAlignment', 'center');
-            end
             if nt == num
                 plot(xx+coords(nt,1), yy+coords(nt,2), 'color', [1 0 0]);
             else
                 plot(xx+coords(nt,1), yy+coords(nt,2), 'color', [0 0 0]);
             end
         end
-
-		pause(2);
+        
+        % drawing bar of scores
+        subplot(1, 3, 3);
+        bar(0:ln-1, tmp*100,'FaceColor',[32 145 201]/255,'EdgeAlpha',0);
+        ylim([0 60]);
+        
+		pause(0.2);
+        if ~ishandle(fig); return; end
 %         saveas(gca, ['im_' num2str((p-1)*ln+num) '.png']);
 	end
 end
