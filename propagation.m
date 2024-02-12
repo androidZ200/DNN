@@ -1,8 +1,9 @@
-function Out = propagation(Field, z, U)
-    % the function of radiation propagation over a distance z
-    F = exp(1i*z*U);
-    % U = sqrt(k^2 - U)
-    % U = k - U/2/k
-        
-    Out = ifft2(bsxfun(@times,fft2(Field),F));
+function Out = propagation(Field, U)
+    % the function of radiation propagation
+    Out = zeros(size(Field));
+    for iter1=1:size(Field,3)
+        for iter2=1:size(Field,4)
+            Out(:,:,iter1,iter2) = U*Field(:,:,iter1,iter2)*(U.');
+        end
+    end
 end

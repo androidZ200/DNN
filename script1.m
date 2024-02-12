@@ -6,21 +6,21 @@ spixel = pixel*2;
 lambda = 632.8e-9;
 N = 512;
 is_max = false;
+z = [0 0.01 0.02];
 init;
 
 mnist_digits;
 % MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
-z = [0 0.01 0.02];
 Propagations = [];
-GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), z(2)-z(1), U);
-for iter=3:length(z)
-    Propagations{end+1} = @(W)propagation(W, z(iter)-z(iter-1), U);
+GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), U(:,:,1));
+for iter=2:size(U,3)
+    Propagations{end+1} = @(W)propagation(W, U(:,:,iter));
 end
 
 DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
 
-epoch = 4;
+epoch = 1;
 batch = 20;
 cycle = 1500;
 speed = 0.3;

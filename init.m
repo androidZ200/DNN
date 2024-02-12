@@ -11,15 +11,15 @@ if exist('spixel', 'var') ~= 1; spixel = 36e-6/metric; end % next pixel size
 B = pixel*N/2; % half-size of the entire area
 
 % coordinates of grid nodes
-x = linspace(-B, B, N+1); x(end) = [];
+x = linspace(-B, B, N+1); x(end) = []; x = x + B/N;
 [X, Y] = meshgrid(x, x);
 
 % U - needed for the propagation operator
-kx = linspace(-pi*N/2/B, pi*N/2/B, N+1); kx(end) = [];
-[Kx, Ky] = meshgrid(kx, kx);
-U = circshift(Kx.^2 + Ky.^2, [N/2 N/2]);
-U = sqrt(k^2 - U);
+U = zeros(N,N,length(z)-1);
+for iter=1:size(U,3)
+    U(:,:,iter) = matrix_propagation(X, Y, z(iter+1)-z(iter), k);
+end
 
 if exist('is_max', 'var') ~= 1; is_max = true; end  % find max or sum in MASKs
 
-clearvars kx Kx Ky;
+clearvars iter;
