@@ -23,7 +23,7 @@ function [step, tmp_data] = criteria(gradient, tmp_data, name, params)
             tmp_data = params(1)*real(tmp_data) + (1 - params(1))*gradient + ...
                    1i*(params(2)*imag(tmp_data) + (1 - params(2))*gradient.^2);
             step = real(tmp_data)/(1 - params(1)^params(4))./ ...
-                sqrt(imag(tmp_data)/(1 - params(2)^params(4)) + params(3));
+                (sqrt(imag(tmp_data)/(1 - params(2)^params(4))) + params(3));
         otherwise
             error(['criteria "' name '" is not exist']);
     end

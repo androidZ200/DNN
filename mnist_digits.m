@@ -27,16 +27,21 @@ for iter99 = 1:ln
 end
 TrainLabel = tmp_label;
 
-G_size_x = 0.2e-3/metric; % size of focus areas X
-G_size_y = 0.2e-3/metric; % size of focus areas X
+% size of focus area
+if exist('G_size_x', 'var') ~= 1; G_size_x = 0.2e-3/metric; end
+if exist('G_size_y', 'var') ~= 1; G_size_y = 0.2e-3/metric; end
 
-aa = (1.5e-3/metric - G_size_x)/3;
-hh = (1.2e-3/metric - G_size_y)/2;
+% size all area
+if exist('aa', 'var') ~= 1; aa = (1.5e-3/metric - G_size_x)/3; end
+if exist('hh', 'var') ~= 1; hh = (1.2e-3/metric - G_size_y)/2; end
 
 % coordinates of the centers of the focus areas
-coords = [-1.5*aa -hh; -0.5*aa -hh; 0.5*aa -hh; 1.5*aa -hh; ...
-          -1.5*aa   0;                          1.5*aa   0; ...
-          -1.5*aa  hh; -0.5*aa  hh; 0.5*aa  hh; 1.5*aa  hh];
+if exist('coords', 'var') ~= 1;
+    coords = [-1.5*aa -hh; -0.5*aa -hh; 0.5*aa -hh; 1.5*aa -hh; ...
+              -1.5*aa   0;                          1.5*aa   0; ...
+              -1.5*aa  hh; -0.5*aa  hh; 0.5*aa  hh; 1.5*aa  hh];
+end
+
 MASK = zeros(N,N,ln);
 for iter99=1:ln
     MASK(:,:,iter99) = (abs(X-coords(iter99,1)) < G_size_x/2).*(abs(Y-coords(iter99,2)) < G_size_y/2);

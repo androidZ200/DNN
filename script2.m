@@ -1,4 +1,32 @@
 clear all;
+metric = 1;
+pixel = 4e-6/metric;
+spixel = pixel*2;
+N = 64;
+init;
+
+mnist_digits;
+GetImage = @(W)normalize_field(resizeimage(W,N,spixel,pixel));
+
+WW = zeros(N,N,ln);
+hh = zeros(ln,1);
+for iter = 1:size(Train,3)
+    W = GetImage(Train(:,:,iter));
+    WW(:,:,TrainLabel(iter)) = WW(:,:,TrainLabel(iter)) + W;
+    hh(TrainLabel(iter)) = hh(TrainLabel(iter)) + 1;
+end
+
+H = zeros(ln);
+for it1 = 1:ln
+    for it2 = 1:ln
+        H(it1,it2) = sum(sum(WW(:,:,it1).*conj(WW(:,:,it2))))/(hh(it1)*hh(it2));
+    end
+end
+err_tabl = H
+
+return
+%%
+clear all;
 init;
 load('data/real experiments/experiment 10/DOES.mat');
 
@@ -13,6 +41,19 @@ for num=[0 1 2 3 5 6 7 8]
 end
 
 return;
+%%
+xx = [-1 -1 1 1 -1]*G_size_x/2;
+yy = [1 -1 -1 1 1]*G_size_y/2;
+
+hold on; grid on;
+for iter=1:ln
+    plot(xx+coords(iter,1), yy+coords(iter,2), '-k');
+    text(coords(iter,1), coords(iter,2), num2str(iter-1), ...
+        'fontsize', 14, 'HorizontalAlignment', 'center');
+end
+xlim([-B B]); ylim([-B B]);
+axis ij;
+
 %%
 
 clear all;
