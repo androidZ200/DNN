@@ -5,10 +5,10 @@ int_tabl = zeros(ln); % intensity table
 if ~is_max; avg_energy = 0; end
 if exist('batch', 'var') ~= 1; batch = 40; end
 tic;
-parfor iter=1:size(Test,3)/batch
-    num = TestLabel((iter-1)*batch+1:iter*batch)';
+parfor iter3 = 1:size(Test,3)/batch
+    num = TestLabel((iter3-1)*batch+1:iter3*batch)';
     % running through the system
-    W = GetImage(Test(:,:,(iter-1)*batch+1:iter*batch));
+    W = GetImage(Test(:,:,(iter3-1)*batch+1:iter3*batch));
     Scores = recognize(W,Propagations,DOES,MASK,is_max);
     Scores = Scores(1:ln,:);
     if ~is_max; avg_energy = avg_energy + sum(sum(Scores)); end
@@ -31,8 +31,8 @@ accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
 int_tabl = int_tabl./repmat(sum(int_tabl, 1), [ln 1])*100;
 display(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc)]);
 T = int_tabl;
-for iter=1:ln
-    T(:,iter) = sort(T(:,iter));
+for iter3 = 1:ln
+    T(:,iter3) = sort(T(:,iter3));
 end
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
 display(['min contrast = ' num2str(min_contrast) '%;']);
@@ -41,7 +41,7 @@ if ~is_max
     display(['avg energy = ' num2str(avg_energy*100) '%']);
 end
 
-clearvars argmax W iter num Scores tmp_tabl T batch;
+clearvars argmax W iter3 num Scores tmp_tabl T batch;
 return
 
 

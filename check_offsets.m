@@ -1,6 +1,7 @@
-% check result with offsets
+% check result with offsets one DOE
 
-max_offsets = 2;
+if exist('max_offsets', 'var') ~= 1; max_offsets = 2; end
+if exist('num_doe', 'var') ~= 1; num_doe = 1; end
 
 off_err_table = zeros(max_offsets*2+1);
 off_int_table = zeros(max_offsets*2+1);
@@ -9,15 +10,16 @@ save_doe = DOES;
 for iter1 = -max_offsets:max_offsets
     for iter2 = -max_offsets:max_offsets
         display(['offsets = (' num2str(iter2) ', ' num2str(iter1) ');']);
-        DOES = circshift(save_doe, [iter1 iter2]);
+        DOES(:,:,num_doe) = circshift(save_doe(:,:,num_doe), [iter1 iter2]);
         check_result;
         off_err_table(iter1+max_offsets+1,iter2+max_offsets+1) = accuracy;
         off_int_table(iter1+max_offsets+1,iter2+max_offsets+1) = min_contrast;
     end
 end
 DOES = save_doe;
+check_result;
 
-clearvars max_offsets iter1 iter2 save_doe;
+clearvars max_offsets num_doe iter1 iter2 save_doe;
 return;
 
 %% error offsets

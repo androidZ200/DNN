@@ -46,8 +46,8 @@ for ep=1:epoch
         if max_offsets > 0
             off = randi(max_offsets*2+1, size(DOES,3), 2)-max_offsets-1;
             for iter8 = 1:size(DOES,3)
-                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), off);
-                tmp_data(:,:,iter8) = circshift(tmp_data(:,:,iter8), off);
+                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), off(iter8,:));
+                tmp_data(:,:,iter8) = circshift(tmp_data(:,:,iter8), off(iter8,:));
             end
         end
         
@@ -92,8 +92,8 @@ for ep=1:epoch
         % reverse offsets
         if max_offsets > 0
             for iter8 = 1:size(DOES,3)
-                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), -off);
-                tmp_data(:,:,iter8) = circshift(tmp_data(:,:,iter8), -off);
+                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), -off(iter8,:));
+                tmp_data(:,:,iter8) = circshift(tmp_data(:,:,iter8), -off(iter8,:));
             end
         end
         
