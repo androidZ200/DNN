@@ -1,37 +1,43 @@
 %% standart gradient training
-
 clear all;
 pixel = 4e-6;
 spixel = pixel*2;
 lambda = 632.8e-9;
 N = 512;
-is_max = false;
+is_max = true;
 init;
 
+G_size_x = 0.05e-3;
+G_size_y = 0.05e-3;
+aa = (0.6e-3 - G_size_x)/3;
+hh = (0.4e-3 - G_size_y)/2;
 mnist_digits;
-% MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
-z = [0 0.01 0.02];
+z = [0 0.01 0.02 0.03 0.04];
 Propagations = [];
 GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), z(2)-z(1), U);
 for iter=3:length(z)
     Propagations{end+1} = @(W)propagation(W, z(iter)-z(iter-1), U);
 end
 
-DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
+for iter = 0:2
+    DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
 
-epoch = 4;
-batch = 20;
-cycle = 1500;
-speed = 0.3;
-slowdown = 0.9995;
-max_offsets = 0;
-LossFunc = 'SCE';
-method = 'Adam';
-params = [0.9 0.999 1e-8];
-training1;
+    epoch = 4;
+    batch = 20;
+    cycle = 1500;
+    speed = 0.3;
+    slowdown = 0.9995;
+    max_offsets = iter;
+    LossFunc = 'SCE';
+    method = 'Adam';
+    params = [0.9 0.999 1e-8];
+    training1;
 
-check_result;
+    check_result;
+    save(['DOE_3_' num2str(iter)]);
+end
+
 return;
 
 %% iterative alghoritm
