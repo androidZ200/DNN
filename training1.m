@@ -17,11 +17,14 @@ if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln); end
 if exist('iter_gradient', 'var') ~= 1; iter_gradient = 0; end
 
 batch = min(batch, P);
+DOES = single(DOES);
+DOES_MASK = single(DOES_MASK);
 Accr = 0;
 accr_graph(1) = nan;
 if exist('tmp_data', 'var') ~= 1;
     tmp_data = zeros(N,N,size(DOES,3));
 end
+tmp_data = single(tmp_data);
 
 % for Gauss Loss Function
 if strcmp(LossFunc, 'Target')
@@ -31,7 +34,7 @@ if strcmp(LossFunc, 'Target')
                   /(spixel*7)^2;
         Target = normalize_field(exp(-Target)).^2;
     end
-    Target = permute(Target, [1 2 4 3]);
+    Target = single(permute(Target, [1 2 4 3]));
 end
 
 tic;

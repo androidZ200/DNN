@@ -5,7 +5,7 @@ pixel = 4e-6;
 spixel = pixel*2;
 lambda = 632.8e-9;
 N = 512;
-is_max = false;
+is_max = true;
 init;
 
 mnist_digits;

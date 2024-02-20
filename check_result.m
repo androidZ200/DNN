@@ -1,6 +1,6 @@
 
-err_tabl = zeros(ln); % error table
-int_tabl = zeros(ln); % intensity table
+err_tabl = single(zeros(ln)); % error table
+int_tabl = single(zeros(ln)); % intensity table
 
 if ~is_max; avg_energy = 0; end
 if exist('batch', 'var') ~= 1; batch = 40; end

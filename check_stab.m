@@ -4,8 +4,8 @@
 nois = linspace(0, pi/4, 5);
 rep = 3;
 
-accr = zeros(rep,length(nois));
-minc = zeros(rep,length(nois));
+accr = single(zeros(rep,length(nois)));
+minc = single(zeros(rep,length(nois)));
 save=DOES; % we keep the original solution
 
 for iter4=1:rep
