@@ -22,4 +22,5 @@ U = single(sqrt(k^2 - U));
 
 if exist('is_max', 'var') ~= 1; is_max = true; end  % find max or sum in MASKs
 
+
 clearvars kx Kx Ky;

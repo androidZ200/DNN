@@ -20,7 +20,8 @@ end
 
 DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
 
-epoch = 4;
+P = 3000;
+epoch = 1;
 batch = 20;
 cycle = 1500;
 speed = 0.3;
@@ -30,7 +31,7 @@ method = 'Adam';
 params = [0.9 0.999 1e-8];
 training1;
 
-check_result;
+% check_result;
 return;
 
 %% iterative alghoritm

@@ -16,12 +16,12 @@ Test = single(Test(:,:,ind));
 TestLabel = TestLabel(ind);
 
 % rename digits label
-tmp_label = single(zeros(length(TestLabel),1));
+tmp_label = zeros(length(TestLabel),1, 'single');
 for iter99 = 1:ln
     tmp_label = tmp_label + (TestLabel == nums(iter99))*iter99;
 end
 TestLabel = tmp_label;
-tmp_label = single(zeros(length(TrainLabel),1));
+tmp_label = zeros(length(TrainLabel),1, 'single');
 for iter99 = 1:ln
     tmp_label = tmp_label + (TrainLabel == nums(iter99))*iter99;
 end
@@ -42,7 +42,7 @@ if exist('coords', 'var') ~= 1;
               -1.5*aa  hh; -0.5*aa  hh; 0.5*aa  hh; 1.5*aa  hh];
 end
 
-MASK = single(zeros(N,N,ln));
+MASK = zeros(N,N,ln, 'single');
 for iter99=1:ln
     MASK(:,:,iter99) = (abs(X-coords(iter99,1)) < G_size_x/2).*(abs(Y-coords(iter99,2)) < G_size_y/2);
 end

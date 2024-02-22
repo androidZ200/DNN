@@ -10,21 +10,18 @@ if exist('method', 'var') ~= 1; method = 'SGD'; end
 if exist('params', 'var') ~= 1; params = []; end
 if exist('cycle', 'var') ~= 1; cycle = 200; end
 if exist('deleted', 'var') ~= 1; deleted = true; end
-if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations)); end
+if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations),'single'); end
 if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
 if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
 if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln); end
 if exist('iter_gradient', 'var') ~= 1; iter_gradient = 0; end
 
 batch = min(batch, P);
-DOES = single(DOES);
-DOES_MASK = single(DOES_MASK);
 Accr = 0;
 accr_graph(1) = nan;
 if exist('tmp_data', 'var') ~= 1;
-    tmp_data = zeros(N,N,size(DOES,3));
+    tmp_data = zeros(N,N,size(DOES,3),'single');
 end
-tmp_data = single(tmp_data);
 
 % for Gauss Loss Function
 if strcmp(LossFunc, 'Target')
