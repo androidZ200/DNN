@@ -1,7 +1,6 @@
 
-% path = 'D:/mnist/';
-load('D:/mnist/Train.mat');
-load('D:/mnist/Test.mat');
+load('datasets/mnist/Train.mat');
+load('datasets/mnist/Test.mat');
 
 % what numbers will we teach
 nums = [1 2];
@@ -27,11 +26,11 @@ for iter99 = 1:ln
 end
 TrainLabel = tmp_label;
 
-G_size_x = 1.0e-3/metric; % size of focus areas X
-G_size_y = 3.0e-3/metric; % size of focus areas X
+G_size_x = 1.0e-3; % size of focus areas X
+G_size_y = 3.0e-3; % size of focus areas X
 
 % coordinates of the centers of the focus areas
-coords = [-1e-3 0; 1e-3 0]/metric;
+coords = [-1e-3 0; 1e-3 0];
 MASK = zeros(N,N,ln);
 for iter99=1:ln
     MASK(:,:,iter99) = (abs(X-coords(iter99,1)) < G_size_x/2).*(abs(Y-coords(iter99,2)) < G_size_y/2);

@@ -4,6 +4,7 @@ int_tabl = zeros(ln); % intensity table
 
 if ~is_max; avg_energy = 0; end
 if exist('batch', 'var') ~= 1; batch = 40; end
+if isempty(gcp('nocreate')); parpool; end
 tic;
 parfor iter=1:size(Test,3)/batch
     num = TestLabel((iter-1)*batch+1:iter*batch)';

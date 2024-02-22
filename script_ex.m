@@ -1,3 +1,4 @@
+return;
 %% standart gradient training
 
 clear all;
@@ -31,7 +32,41 @@ params = [0.9 0.999 1e-8];
 training1;
 
 check_result;
-return;
+
+%% 4F-system
+
+clear all;
+focus = 0.25;
+pixel_doe = 8e-6;
+lambda = 532e-9;
+N = 1024;
+pixel = lambda*focus/pixel_doe/N;
+spixel = 36e-6;
+is_max = true;
+init;
+
+aa = 5e-3;
+hh = 4e-3;
+G_size_x = 1e-3;
+G_size_y = 1e-3;
+mnist_digits;
+
+GetImage = @(W)fft2(normalize_field(resizeimage(W,N,spixel,pixel)));
+Propagations = { @(W)fft2(W) };
+
+DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
+
+epoch = 4;
+batch = 20;
+cycle = 1500;
+speed = 0.3;
+slowdown = 0.9995;
+LossFunc = 'SCE';
+method = 'Adam';
+params = [0.9 0.999 1e-8];
+training1;
+
+check_result;
 
 %% iterative alghoritm
 
@@ -79,19 +114,16 @@ deleted = false;
 training1;
 check_result;
 
-return;
-
 %% test no-gradient training
 
 clear all;
-pixel = 4e-6/0.001;
+pixel = 4e-6;
 spixel = pixel*2;
-lambda = 632.8e-9/0.001;
+lambda = 632.8e-9;
 N = 512;
 init;
 
 mnist_digits;
-% MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
 GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), 10, U);
 Propagations = { @(W)propagation(W, 10, U); };
@@ -105,12 +137,11 @@ LossFunc = 'SCE';
 training2;
 
 check_result;
-return;
 
 %% example image generation
 
 clear all;
-pixel = 18e-6/0.001;
+pixel = 18e-6;
 N = 512;
 init;
 
@@ -130,9 +161,13 @@ Target(:,:,3) = (max(abs(X), abs(Y)) < B/4).*(min(abs(X), abs(Y)) < B*0.05/4.4);
 Target(:,:,4) = (max(abs(X), abs(Y)) < B/4).*(abs(abs(X) - abs(Y)) <  B*0.07/4.4);
 Target = (normalize_field(Target)*1e3).^2;
 
-GetImage = @(W) propagation(W, 150, U);
-Propagations = { @(W)propagation(W, 150, U); @(W)propagation(W, 150, U); @(W)propagation(W, 150, U); };
-MASK = zeros(size(Train));
+z = [0 0.15 0.30 0.45];
+GetImage = @(W) propagation(W, z(2)-z(1), U);
+Propagations = [];
+for iter=3:length(z)
+    Propagations{end+1} = @(W)propagation(W, z(iter)-z(iter-1), U);
+end
+MASK = zeros(size(Train)); ln = 0;
 
 epoch = 8000;
 batch = 4;
@@ -143,7 +178,6 @@ LossFunc = 'Target';
 method = 'Adam';
 params = [0.9 0.999 1e-8];
 training1;
-return;
 
 %% phase function doe
 
@@ -157,6 +191,7 @@ for iter=1:size(DOES,3)
     imagesc([-B B], [-B B], angle(DOES(:,:,iter)));
     title(['DOE ' num2str(iter)]);
     colormap(ssau); colorbar;
+    axis square;
 end
 
 clearvars ssau;

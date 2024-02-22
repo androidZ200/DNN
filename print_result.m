@@ -1,11 +1,11 @@
 
-P = 5;
+if exist('P', 'var') ~= 1; P = 5; end
+if exist('delay', 'var') ~= 1; delay = 0.2; end
 
 % colormap in shades of Samara university
 ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
 		   linspace(1, 145/255, 50), linspace(145/255, 0, 100); ...
 		   linspace(1, 201/255, 50), linspace(201/255, 0, 100)]';
-
 % to draw squares
 xx = [-1 -1 1 1 -1]*G_size_x/2;
 yy = [1 -1 -1 1 1]*G_size_y/2;
@@ -28,9 +28,9 @@ for num=1:ln
         set(gca,'xtick',[],'ytick',[]);
         axis square;
 		subplot(1, 3, 2);
-        zoom = 2;
-		imagesc([-B B]/zoom, [-B B]/zoom, abs(F(floor(N/2-N/2/zoom+1:N/2+N/2/zoom),...
-            floor(N/2-N/2/zoom+1:N/2+N/2/zoom),end)).^2);
+		imagesc([-B B], [-B B], abs(F(:,:,end)).^2);
+        C = max(max(abs(coords)));
+        xlim([-C C]*1.5); ylim([-C C]*1.5);
         set(gca,'xtick',[],'ytick',[]);
         axis square;
         hold on;
@@ -38,7 +38,7 @@ for num=1:ln
         % drawing numbers and squares of focus areas
         for nt=1:ln
             if nt == num
-                plot(xx+coords(nt,1), yy+coords(nt,2), 'color', [1 0 0]);
+                plot(xx+coords(nt,1), yy+coords(nt,2), 'color', [201 88 32]/255);
             else
                 plot(xx+coords(nt,1), yy+coords(nt,2), 'color', [0 0 0]);
             end
@@ -56,4 +56,4 @@ for num=1:ln
 end
 close(fig);
 
-clearvars fig nt p P num F W tmp ssau doe xx yy ind zoom;
+clearvars fig nt p P num F W tmp ssau xx yy ind C delay;

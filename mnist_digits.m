@@ -1,7 +1,6 @@
 
-% path = 'D:/mnist/';
-load('D:/mnist/Train.mat');
-load('D:/mnist/Test.mat');
+load('datasets/mnist/Train.mat');
+load('datasets/mnist/Test.mat');
 
 % what numbers will we teach
 nums = [0 1 2 3 4 5 6 7 8 9];
@@ -28,12 +27,14 @@ end
 TrainLabel = tmp_label;
 
 % size of focus area
-if exist('G_size_x', 'var') ~= 1; G_size_x = 0.2e-3/metric; end
-if exist('G_size_y', 'var') ~= 1; G_size_y = 0.2e-3/metric; end
+if exist('G_size_x', 'var') ~= 1; G_size_x = 0.2e-3; end
+if exist('G_size_y', 'var') ~= 1; G_size_y = 0.2e-3; end
 
 % size all area
-if exist('aa', 'var') ~= 1; aa = (1.5e-3/metric - G_size_x)/3; end
-if exist('hh', 'var') ~= 1; hh = (1.2e-3/metric - G_size_y)/2; end
+if exist('aa', 'var') ~= 1; aa = 1.5e-3; end
+if exist('hh', 'var') ~= 1; hh = 1.2e-3; end
+aa = (aa - G_size_x)/3;
+hh = (hh - G_size_y)/2;
 
 % coordinates of the centers of the focus areas
 if exist('coords', 'var') ~= 1;

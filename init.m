@@ -1,14 +1,11 @@
 % setting the system parameters
 
-if exist('metric', 'var') ~= 1; metric = 1; end % metric (in meters)
-if exist('lambda', 'var') ~= 1; lambda = 0.532e-6/metric; end  % wavelength
-k = 2*pi/lambda;
-
-f = 0.25/metric;
-if exist('N', 'var') ~= 1; N = 2^10; end % total area size
-if exist('pixel', 'var') ~= 1; pixel = lambda*f/(8e-6/metric)/N; end % source pixel size
-if exist('spixel', 'var') ~= 1; spixel = 36e-6/metric; end % next pixel size
+if exist('lambda', 'var') ~= 1; lambda = 0.532e-6; end  % wavelength
+if exist('N', 'var') ~= 1; N = 512; end % total area size
+if exist('pixel', 'var') ~= 1; pixel = 4e-6; end % next pixel size
+if exist('spixel', 'var') ~= 1; spixel = pixel; end % source pixel size
 B = pixel*N/2; % half-size of the entire area
+k = 2*pi/lambda;
 
 % coordinates of grid nodes
 x = linspace(-B, B, N+1); x(end) = [];
