@@ -5,7 +5,7 @@ pixel = 4e-6;
 spixel = pixel*2;
 lambda = 632.8e-9;
 N = 512;
-is_max = false;
+is_max = true;
 z = [0 0.01 0.02];
 init;
 
@@ -18,7 +18,7 @@ for iter=2:size(U,3)
     Propagations{end+1} = @(W)propagation(W, U(:,:,iter));
 end
 
-DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
+DOES = ones(N,N,length(Propagations));
 
 epoch = 1;
 batch = 20;

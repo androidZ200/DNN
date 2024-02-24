@@ -28,7 +28,7 @@ for num=1:ln
         set(gca,'xtick',[],'ytick',[]);
         axis square;
 		subplot(1, 3, 2);
-        zoom = 2;
+        zoom = 1;
 		imagesc([-B B]/zoom, [-B B]/zoom, abs(F(floor(N/2-N/2/zoom+1:N/2+N/2/zoom),...
             floor(N/2-N/2/zoom+1:N/2+N/2/zoom),end)).^2);
         set(gca,'xtick',[],'ytick',[]);

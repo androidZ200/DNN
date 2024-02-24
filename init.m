@@ -15,9 +15,11 @@ x = linspace(-B, B, N+1); x(end) = []; x = x + B/N;
 [X, Y] = meshgrid(x, x);
 
 % U - needed for the propagation operator
-U = zeros(N,N,length(z)-1);
-for iter=1:size(U,3)
-    U(:,:,iter) = matrix_propagation(X, Y, z(iter+1)-z(iter), k);
+if exist('z', 'var') ==1
+    U = zeros(N,N,length(z)-1);
+    for iter=1:size(U,3)
+        U(:,:,iter) = matrix_propagation(X, Y, z(iter+1)-z(iter), k);
+    end
 end
 
 if exist('is_max', 'var') ~= 1; is_max = true; end  % find max or sum in MASKs

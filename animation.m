@@ -8,19 +8,16 @@ fig = figure;
 imagesc(x, x, abs(W));
 title(['z = ' num2str(z(1)) ' mm']);
 pause(3);
-zones = z;
 h = (z(end)-z(1))/100;
-UU = matrix_propagation(X,Y,h,k);
-for zone=1:length(zones)-1
-    F = W;
-    for zz = zones(zone):h:zones(zone+1)
-        F = propagation(F, UU);
+for zone=1:length(z)-1
+    for zz = z(zone):h:z(zone+1)
+        F = propagation(W, matrix_propagation(X,Y,zz-z(zone),k));
         imagesc(x, x, abs(F));
         title(['z = ' num2str(zz*metric*1000) ' mm']);
         pause(0.05);
     end
     W = propagation(W, U(:,:,zone));
-    if zone ~= length(zones)-1
+    if zone ~= length(z)-1
         W = W.*DOES(:,:,zone);
     end
 end
@@ -36,4 +33,4 @@ end
 pause(6);
 close(fig);
 
-clearvars fig zones zone zz W F nt xx yy score h UU;
+clearvars fig zone zz W F nt xx yy score h;
