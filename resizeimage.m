@@ -6,9 +6,9 @@ function W = resizeimage(Image, N, source_pixel, next_pixel)
     yy = xx';
     if size(Image,3) > 1
         z = 1:size(Image, 3);
-        W = interp3(x, y, z, double(Image), xx, yy, z, 'nearest');
+        W = interp3(x, y, z, Image, xx, yy, z, 'nearest');
     else
-        W = interp2(x, y, double(Image), xx, yy, 'nearest');
+        W = interp2(x, y, Image, xx, yy, 'nearest');
     end
     W(isnan(W)) = 0;
 end

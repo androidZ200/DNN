@@ -1,9 +1,10 @@
 
-err_tabl = zeros(ln); % error table
-int_tabl = zeros(ln); % intensity table
+err_tabl = zeros(ln,'single'); % error table
+int_tabl = zeros(ln,'single'); % intensity table
 
 if ~is_max; avg_energy = 0; end
 if exist('batch', 'var') ~= 1; batch = 40; end
+if isempty(gcp('nocreate')); parpool; end
 tic;
 parfor iter3 = 1:size(Test,3)/batch
     num = TestLabel((iter3-1)*batch+1:iter3*batch)';
@@ -15,13 +16,13 @@ parfor iter3 = 1:size(Test,3)/batch
 
     % errors
     [~, argmax] = max(Scores);
-    tmp_tabl = zeros(ln, ln, batch);
+    tmp_tabl = zeros(ln, ln, batch, 'single');
     tmp_tabl(argmax + ln*(num-1) + ln^2*(0:(batch-1))) = 1;
     err_tabl = err_tabl + sum(tmp_tabl,3);
     
     % intensity
     Scores = bsxfun(@rdivide,Scores,sum(Scores));
-    tmp_tabl = zeros(ln, ln*batch);
+    tmp_tabl = zeros(ln, ln*batch, 'single');
     tmp_tabl(:, num+(0:batch-1)*ln) = Scores;
     tmp_tabl = reshape(tmp_tabl, ln, ln, []);
     int_tabl = int_tabl + sum(tmp_tabl,3);
