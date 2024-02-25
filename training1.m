@@ -10,7 +10,7 @@ if exist('method', 'var') ~= 1; method = 'SGD'; end
 if exist('params', 'var') ~= 1; params = []; end
 if exist('cycle', 'var') ~= 1; cycle = 200; end
 if exist('deleted', 'var') ~= 1; deleted = true; end
-if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations)); end
+if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations),'single'); end
 if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
 if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
 if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln); end
@@ -20,7 +20,7 @@ batch = min(batch, P);
 Accr = 0;
 accr_graph(1) = nan;
 if exist('tmp_data', 'var') ~= 1;
-    tmp_data = zeros(N,N,size(DOES,3));
+    tmp_data = zeros(N,N,size(DOES,3),'single');
 end
 
 % for Gauss Loss Function
@@ -31,7 +31,7 @@ if strcmp(LossFunc, 'Target')
                   /(spixel*7)^2;
         Target = normalize_field(exp(-Target)).^2;
     end
-    Target = permute(Target, [1 2 4 3]);
+    Target = single(permute(Target, [1 2 4 3]));
 end
 
 tic;
