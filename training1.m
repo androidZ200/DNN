@@ -26,14 +26,13 @@ end
 % for Gauss Loss Function
 if strcmp(LossFunc, 'Target')
     if exist('Target', 'var') ~= 1
-        Target = (bsxfun(@minus,X,permute(coords(:,1), [3 2 1])).^2 + ...
-                  bsxfun(@minus,Y,permute(coords(:,2), [3 2 1])).^2) ...
-                  /(spixel*7)^2;
+        Target = ((X - permute(coords(:,1), [3 2 1])).^2 + (Y - permute(coords(:,2), [3 2 1])).^2)/(spixel*7)^2;                  
         Target = normalize_field(exp(-Target)).^2;
     end
     Target = permute(Target, [1 2 4 3]);
 end
 
+%% training
 tic;
 for ep=1:epoch
     randind = randperm(size(Train,3));
@@ -45,7 +44,7 @@ for ep=1:epoch
         W = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
         [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
         I = sum(me);
-        me = bsxfun(@rdivide,me,I);
+        me = me./I;
         Accr = Accr + sum(max(me) == me(num+(0:batch-1)*size(MASK,3)));
         
         % training
@@ -57,15 +56,15 @@ for ep=1:epoch
             case 'MSE' % mean squared error
                 p = me;
                 p = p - target_scores(:,num);
-                p = 4*bsxfun(@rdivide,(bsxfun(@minus,p,sum(me.*p))),I);
-                F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
+                p = 4*(p-sum(me.*p))./I;
+                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             case 'SCE' % softmax cross entropy
                 p = exp(sce_factor*me); 
-                p = bsxfun(@rdivide,p,sum(p));
+                p = p./sum(p);
                 alpha = target_scores(:,num);
-                p =  bsxfun(@plus,bsxfun(@times,bsxfun(@minus,p,sum(p.*me)),sum(alpha)),sum(alpha.*me)) - alpha;
-                p = bsxfun(@rdivide,p*sce_factor*2,I);
-                F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
+                p = (p-sum(p.*me)).*sum(alpha) + sum(alpha.*me) - alpha;
+                p = p*sce_factor*2./I;
+                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             otherwise
                 error(['Loss function "' name '" is not exist']);
         end
@@ -91,7 +90,7 @@ for ep=1:epoch
     DOES = DOES_MASK.*exp(1i*angle(DOES));
 end
 
-% clearing unnecessary variables
+%% clearing unnecessary variables
 clearvars num iter7 ep me mi W Wend F Accr randind gradient p I alpha;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle ...

@@ -2,7 +2,6 @@
 err_tabl = zeros(ln); % error table
 int_tabl = zeros(ln); % intensity table
 
-if ~is_max; avg_energy = 0; end
 if exist('batch', 'var') ~= 1; batch = 40; end
 tic;
 parfor iter=1:size(Test,3)/batch
@@ -11,7 +10,6 @@ parfor iter=1:size(Test,3)/batch
     W = GetImage(Test(:,:,(iter-1)*batch+1:iter*batch));
     Scores = recognize(W,Propagations,DOES,MASK,is_max);
     Scores = Scores(1:ln,:);
-    if ~is_max; avg_energy = avg_energy + sum(sum(Scores)); end
 
     % errors
     [~, argmax] = max(Scores);
