@@ -33,10 +33,7 @@ accuracy = sum(diag(err_tabl))/sum(sum(err_tabl))*100;
 int_tabl = int_tabl./sum(int_tabl)*100;
 display(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc)]);
 % min contrast info
-T = int_tabl;
-for iter3=1:ln
-    T(:,iter3) = sort(T(:,iter3));
-end
+T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
 disp(['min contrast = ' num2str(min_contrast) '%;']);
 % effectiveness info
@@ -86,10 +83,7 @@ for ii = 1:ln
             'color', color, 'HorizontalAlignment', 'center');
     end
 end
-T = int_tabl;
-for ii=1:ln
-    T(:,ii) = sort(T(:,ii));
-end
+T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
 title(['min contrast = ' num2str(min_contrast) '%;']);
 display(['min contrast = ' num2str(min_contrast) '%;']);

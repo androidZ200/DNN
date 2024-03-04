@@ -18,7 +18,9 @@ if exist('iter_gradient', 'var') ~= 1; iter_gradient = 0; end
 
 batch = min(batch, P);
 Accr = 0;
+Aint = 0;
 accr_graph(1) = nan;
+aint_graph(1) = nan;
 if exist('tmp_data', 'var') ~= 1
     tmp_data = zeros(N,N,size(DOES,3),'single');
 end
@@ -46,6 +48,8 @@ for ep=1:epoch
         I = sum(me);
         me = me./I;
         Accr = Accr + sum(max(me) == me(num+(0:batch-1)*size(MASK,3)));
+        sortme = sort(me);
+        Aint = Aint + sum((sortme(end,:)-sortme(end-1,:))./(sortme(end,:)+sortme(end-1,:)));
         
         % training
         Wend = conj(W(:,:,end,:));
@@ -81,17 +85,21 @@ for ep=1:epoch
         % data output to the console
         if mod(iter7+batch-1 + ep*P, cycle) == 0
             Accr = Accr/max(cycle,batch)*100;
+            Aint = Aint/max(cycle,batch)*100;
             accr_graph(end+1) = Accr;
+            aint_graph(end+1) = Aint;
+
             disp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
                 '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
             Accr = 0;
+            Aint = 0;
         end
     end
     DOES = DOES_MASK.*exp(1i*angle(DOES));
 end
 
 %% clearing unnecessary variables
-clearvars num iter7 ep me mi W Wend F Accr randind gradient p I alpha;
+clearvars num iter7 ep me mi W Wend F sortme Accr Aint randind gradient p I alpha;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle ...
         deleted Target tmp_data sce_factor target_scores iter_gradient;
