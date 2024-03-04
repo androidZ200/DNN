@@ -3,13 +3,13 @@ TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if exist('batch', 'var') ~= 1; batch = 40; end
 if isempty(gcp('nocreate')); parpool; end
+
 tic;
 parfor iter3=1:size(Test,3)/batch
     num = TestLabel((iter3-1)*batch+1:iter3*batch)';
     % running through the system
     W = GetImage(Test(:,:,(iter3-1)*batch+1:iter3*batch));
     Scores = recognize(W,Propagations,DOES,MASK,is_max);
-    Scores = bsxfun(@rdivide,Scores,sum(Scores));
     
     tmp_tabl = zeros(size(MASK,3), size(Test,3), 'single');
     tmp_tabl(:,(iter3-1)*batch+1:iter3*batch) = Scores;
@@ -24,13 +24,13 @@ err_tabl = sum(err_tabl,3);
 
 % intensity table
 int_tabl = zeros(size(MASK,3), ln*size(Test,3), 'single');
-int_tabl(:, TestLabel'+(0:(size(Test,3)-1))*ln) = TestScores;
+int_tabl(:, TestLabel'+(0:(size(Test,3)-1))*ln) = TestScores./sum(TestScores);
 int_tabl = reshape(int_tabl, size(MASK,3), ln, []);
 int_tabl = sum(int_tabl,3);
 %%
 % accuracy info
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl))*100;
-int_tabl = bsxfun(@rdivide, int_tabl, sum(int_tabl))*100;
+int_tabl = int_tabl./sum(int_tabl)*100;
 display(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc)]);
 % min contrast info
 T = int_tabl;
@@ -38,11 +38,11 @@ for iter3=1:ln
     T(:,iter3) = sort(T(:,iter3));
 end
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
-display(['min contrast = ' num2str(min_contrast) '%;']);
+disp(['min contrast = ' num2str(min_contrast) '%;']);
 % effectiveness info
 if ~is_max
     avg_energy = sum(sum(TestScores(1:ln,:)))/size(Test,3);
-    display(['avg energy = ' num2str(avg_energy*100) '%']);
+    disp(['avg energy = ' num2str(avg_energy*100) '%']);
 end
 
 clearvars argmax W iter3 num Scores T batch tmp_tabl;

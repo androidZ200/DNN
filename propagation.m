@@ -1,8 +1,14 @@
-function Out = propagation(Field, z, U)
-    % the function of radiation propagation over a distance z
-    F = exp(1i*z*U);
-    % U = sqrt(k^2 - U)
-    % U = k - U/2/k
-        
-    Out = ifft2(bsxfun(@times,fft2(Field),F));
+function Out = propagation(Field, U, method)
+    % the function of radiation propagation
+
+
+    switch(method)
+        case 'fresnel'
+            Out = pagemtimes(U, pagemtimes(Field, U.'));
+        case 'fft'
+            Out = ifft2(fft2(Field).*U);
+        otherwise
+            error('this method propagation not exist');
+    end
+
 end

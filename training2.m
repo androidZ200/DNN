@@ -9,6 +9,7 @@ if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
 if exist('deleted', 'var') ~= 1; deleted = true; end
 if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations), 'single'); end
 if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
+if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln,'single'); end
 
 max_batch = 500;
 batch = min(batch, P);
@@ -20,14 +21,13 @@ accr_graph(1) = nan;
 % for Gauss Loss Function
 if strcmp(LossFunc, 'Target')
     if exist('Target', 'var') ~= 1
-        Target = (bsxfun(@minus,X,permute(coords(:,1), [3 2 1])).^2 + ...
-                  bsxfun(@minus,Y,permute(coords(:,2), [3 2 1])).^2) ...
-                  /(spixel*7)^2;
+        Target = ((X - permute(coords(:,1), [3 2 1])).^2 + (Y - permute(coords(:,2), [3 2 1])).^2)/(spixel*7)^2;
         Target = normalize_field(exp(-Target)).^2;
     end
     Target = single((permute(Target, [1 2 4 3])));
 end
 
+%% training
 tic;
 for ep=1:epoch
     for iter8=1:batch:P
@@ -40,8 +40,8 @@ for ep=1:epoch
             W = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
             [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
             I = sum(me);
-            me = bsxfun(@rdivide,me,I);
             Accr = Accr + sum(max(me) == me(num+(0:batch-1)*size(MASK,3)));
+            me = me./I;
 
             % training
             Wend = conj(W(:,:,end,:));
@@ -52,15 +52,15 @@ for ep=1:epoch
                 case 'MSE' % mean squared error
                     p = me;
                     p = p - target_scores(:,num);
-                    p = 4*bsxfun(@rdivide,(bsxfun(@minus,p,sum(me.*p))),I);
-                    F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
+                    p = 4*(p-sum(me.*p))./I;
+                    F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
                 case 'SCE' % softmax cross entropy
                     p = exp(sce_factor*me); 
-                    p = bsxfun(@rdivide,p,sum(p));
+                    p = p./sum(p);
                     alpha = target_scores(:,num);
-                    p =  bsxfun(@plus,bsxfun(@times,bsxfun(@minus,p,sum(p.*me)),sum(alpha)),sum(alpha.*me)) - alpha;
-                    p = bsxfun(@rdivide,p*sce_factor*2,I);
-                    F = sum(bsxfun(@times,bsxfun(@times,Wend,permute(p,[3 4 1 2])),mi),3);
+                    p =  (p - sum(p.*me)).*sum(alpha) + sum(alpha.*me) - alpha;
+                    p = p*sce_factor*2./I;
+                    F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
                 otherwise
                     error(['Loss function "' name '" is not exist']);
             end
@@ -77,7 +77,7 @@ for ep=1:epoch
         if mod(iter8+batch-1 + ep*P, cycle) == 0
             Accr = Accr/max(cycle,batch)*100;
             accr_graph(end+1) = Accr;
-            display(['epoch = ' num2str(ep) '/' num2str(epoch) '; iter = ' num2str(iter8+batch-1) ...
+            disp(['epoch = ' num2str(ep) '/' num2str(epoch) '; iter = ' num2str(iter8+batch-1) ...
                  '/' num2str(P) '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
             Accr = 0;
         end
@@ -85,7 +85,7 @@ for ep=1:epoch
     DOES = DOES_MASK.*exp(1i*angle(DOES));
 end
 
-% clearing unnecessary variables
+%% clearing unnecessary variables
 clearvars num iter7 iter8 ep me mi W Wend F Accr randind min_phase p I max_batch;
 if deleted == true
     clearvars epoch P cycle Target batch LossFunc sce_factor;
