@@ -10,8 +10,7 @@ if exist('m_prop', 'var') ~= 1; m_prop = 'fft'; end  % method propagation
 B = pixel*N/2; % half-size of the entire area
 k = 2*pi/lambda;
 % coordinates of grid nodes
-x = single(linspace(-B, B, N+1)); x(end) = [];
-if strcmp(m_prop,'fresnel'); x = x + B/N; end
+x = single(linspace(-B, B, N+1)); x(end) = []; x = x + B/N;
 [X, Y] = meshgrid(x, x);
 
 if exist('z', 'var') ~= 1; z = [0 0.01 0.02]; end

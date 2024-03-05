@@ -14,8 +14,6 @@ if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln,'sing
 max_batch = 500;
 batch = min(batch, P);
 Accr = 0;
-randind = randperm(size(Train,3));
-randind = randind(1:P);
 accr_graph(1) = nan;
 
 % for Gauss Loss Function
@@ -30,17 +28,18 @@ end
 %% training
 tic;
 for ep=1:epoch
+    randind = randperm(size(Train,3));
+    randind = randind(1:P);
     for iter8=1:batch:P
         min_phase = zeros(N,N,size(DOES,3), 'single');
         for iter7=0:min(batch, max_batch):(batch-1)
             num = TrainLabel(randind(iter8+iter7+(0:min(batch, max_batch)-1)))';
-            inum = num+(0:min(batch, max_batch)-1)*size(MASK,3);
 
             % direct propagation
-            W = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
+            W = GetImage(Train(:,:,randind(iter8+iter7+(0:min(batch, max_batch)-1))));
             [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
             I = sum(me);
-            Accr = Accr + sum(max(me) == me(num+(0:batch-1)*size(MASK,3)));
+            Accr = Accr + sum(max(me) == me(num+(0:min(batch, max_batch)-1)*size(MASK,3)));
             me = me./I;
 
             % training
@@ -77,8 +76,8 @@ for ep=1:epoch
         if mod(iter8+batch-1 + ep*P, cycle) == 0
             Accr = Accr/max(cycle,batch)*100;
             accr_graph(end+1) = Accr;
-            disp(['epoch = ' num2str(ep) '/' num2str(epoch) '; iter = ' num2str(iter8+batch-1) ...
-                 '/' num2str(P) '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
+            disp(['iter = ' num2str(iter8+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
+                '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
             Accr = 0;
         end
     end
@@ -86,9 +85,9 @@ for ep=1:epoch
 end
 
 %% clearing unnecessary variables
-clearvars num iter7 iter8 ep me mi W Wend F Accr randind min_phase p I max_batch;
+clearvars num iter7 iter8 ep me mi W Wend F Accr randind min_phase alpha p I max_batch;
 if deleted == true
-    clearvars epoch P cycle Target batch LossFunc sce_factor;
+    clearvars epoch P cycle Target batch LossFunc sce_factor DOES_MASK;
 else
     deleted = true;
     Target = permute(Target, [1 2 4 3]);

@@ -62,13 +62,11 @@ for ii = 1:ln
             'HorizontalAlignment', 'center');
     end
 end
-clearvars ii jj grad color;
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
 title(['accuracy = ' num2str(accuracy) '%;']);
 display(['accuracy = ' num2str(accuracy) '%;']);
 clearvars ii jj grad color;
 return;
-
 
 %% intensity table
 % output of a beautiful intensity table

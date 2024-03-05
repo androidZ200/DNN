@@ -21,6 +21,8 @@ Accr = 0;
 Aint = 0;
 accr_graph(1) = nan;
 aint_graph(1) = nan;
+DOES = single(DOES);
+DOES_MASK = single(DOES_MASK);
 if exist('tmp_data', 'var') ~= 1
     tmp_data = zeros(N,N,size(DOES,3),'single');
 end
@@ -102,7 +104,7 @@ end
 clearvars num iter7 ep me mi W Wend F sortme Accr Aint randind gradient p I alpha;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle ...
-        deleted Target tmp_data sce_factor target_scores iter_gradient;
+        deleted Target tmp_data sce_factor target_scores iter_gradient DOES_MASK;
 else
     deleted = true;
     if strcmp(LossFunc, 'Target')

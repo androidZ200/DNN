@@ -37,15 +37,13 @@ aa = (aa - G_size_x)/3;
 hh = (hh - G_size_y)/2;
 
 % coordinates of the centers of the focus areas
-if exist('coords', 'var') ~= 1;
+if exist('coords', 'var') ~= 1
     coords = [-1.5*aa -hh; -0.5*aa -hh; 0.5*aa -hh; 1.5*aa -hh; ...
               -1.5*aa   0;                          1.5*aa   0; ...
               -1.5*aa  hh; -0.5*aa  hh; 0.5*aa  hh; 1.5*aa  hh];
 end
 
-MASK = zeros(N,N,ln, 'single');
-for iter99=1:ln
-    MASK(:,:,iter99) = (abs(X-coords(iter99,1)) < G_size_x/2).*(abs(Y-coords(iter99,2)) < G_size_y/2);
-end
+MASK = (abs(X - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
+       (abs(Y - permute(coords(:,2), [3 2 1])) < G_size_y/2);
 
 clearvars ind aa hh iter99 nums tmp_label;

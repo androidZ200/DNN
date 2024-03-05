@@ -1,25 +1,24 @@
 return;
 %% standart gradient training
 
-clear all;
+clear variables;
+
 pixel = 4e-6;
 spixel = pixel*2;
 lambda = 632.8e-9;
 N = 512;
 is_max = true;
+z = [0 0.01 0.02];
+m_prop = 'fft';
 init;
 
+aa = 0.6e-3;
+hh = 0.4e-3;
+G_size_x = 50e-6;
+G_size_y = G_size_x;
 mnist_digits;
 % MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
-z = [0 0.01 0.02];
-Propagations = [];
-GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), z(2)-z(1), U);
-for iter=3:length(z)
-    Propagations{end+1} = @(W)propagation(W, z(iter)-z(iter-1), U);
-end
-
-DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
 
 epoch = 4;
 batch = 20;
@@ -35,7 +34,8 @@ check_result;
 
 %% 4F-system
 
-clear all;
+clear variables;
+
 focus = 0.25;
 pixel_doe = 8e-6;
 lambda = 532e-9;
@@ -70,8 +70,10 @@ check_result;
 
 %% iterative alghoritm
 
-clear all;
+clear variables;
+
 N = 256/2;
+pixel = 4e-6*512/N;
 spixel = 8e-6;
 lambda = 632.8e-9;
 is_max = true;
@@ -91,16 +93,12 @@ method = 'Adam';
 params = [0.9 0.999 1e-8];
 %%
 N = N*2;
-pixel = 4e-6*512/N;
+pixel = pixel/2;
 init;
-aa = (0.6e-3 - G_size_x)/3;
-hh = (0.4e-3 - G_size_y)/2;
+
+aa = 0.6e-3;
+hh = 0.4e-3;
 mnist_digits;
-Propagations = [];
-GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), z(2)-z(1), U);
-for iter=3:length(z)
-    Propagations{end+1} = @(W)propagation(W, z(iter)-z(iter-1), U);
-end
 
 DOES = kron(DOES, ones(2));
 DOES_MASK = kron(DOES_MASK, ones(2));
@@ -116,20 +114,17 @@ check_result;
 
 %% test no-gradient training
 
-clear all;
+clear variables;
+
 pixel = 4e-6;
 spixel = pixel*2;
 lambda = 632.8e-9;
-N = 512;
+z = [0 0.01 0.02];
 init;
 
 mnist_digits;
 
-GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), 10, U);
-Propagations = { @(W)propagation(W, 10, U); };
-DOES = exp(2i*pi*rand(N,N,length(Propagations)));
-
-P = 4000;
+P = 10000;
 epoch = 1;
 batch = 1000;
 cycle = 1000;
@@ -140,9 +135,11 @@ check_result;
 
 %% example image generation
 
-clear all;
+clear variables;
+
 pixel = 18e-6;
 N = 512;
+z = [0 0.15 0.30 0.45];
 init;
 
 sigma = B/8;
@@ -161,12 +158,6 @@ Target(:,:,3) = (max(abs(X), abs(Y)) < B/4).*(min(abs(X), abs(Y)) < B*0.05/4.4);
 Target(:,:,4) = (max(abs(X), abs(Y)) < B/4).*(abs(abs(X) - abs(Y)) <  B*0.07/4.4);
 Target = (normalize_field(Target)*1e3).^2;
 
-z = [0 0.15 0.30 0.45];
-GetImage = @(W) propagation(W, z(2)-z(1), U);
-Propagations = [];
-for iter=3:length(z)
-    Propagations{end+1} = @(W)propagation(W, z(iter)-z(iter-1), U);
-end
 MASK = zeros(size(Train)); ln = 0;
 
 epoch = 8000;
@@ -194,7 +185,7 @@ for iter=1:size(DOES,3)
     axis square;
 end
 
-clearvars ssau;
+clearvars ssau iter;
 
 %% outputs regions
 xx = [-1 -1 1 1 -1]*G_size_x/2;
