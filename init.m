@@ -15,13 +15,14 @@ x = single(linspace(-B, B, N+1)); x(end) = []; x = x + B/N;
 
 if exist('z', 'var') ~= 1; z = [0 0.01 0.02]; end
 
-for iter=1:length(z)-1
-    U(:,:,iter) = matrix_propagation(X,Y,z(iter+1)-z(iter),k,m_prop);
+U = zeros(N,N,length(z)-1,'single');
+for iter99=1:length(z)-1
+    U(:,:,iter99) = matrix_propagation(X,Y,z(iter99+1)-z(iter99),k,m_prop);
 end
 GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), U(:,:,1), m_prop);
 Propagations = [];
-for iter=2:size(U,3)
-    Propagations{end+1} = @(W)propagation(W, U(:,:,iter), m_prop);
+for iter99=2:size(U,3)
+    Propagations{end+1} = @(W)propagation(W, U(:,:,iter99), m_prop);
 end
 
 
@@ -30,4 +31,4 @@ if exist('DOES', 'var') ~= 1;
 end
 
 
-clearvars iter;
+clearvars iter99;

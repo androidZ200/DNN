@@ -49,7 +49,7 @@ for num=1:ln
         bar(0:ln-1, tmp*100,'FaceColor',[32 145 201]/255,'EdgeAlpha',0);
         ylim([0 60]);
         
-		pause(0.2);
+		pause(delay);
         if ~ishandle(fig); return; end
 %         saveas(gca, ['im_' num2str((p-1)*ln+num) '.png']);
 	end

@@ -26,7 +26,7 @@ if strcmp(LossFunc, 'Target')
 end
 
 %% training
-tic;
+tt2 = tic;
 for ep=1:epoch
     randind = randperm(size(Train,3));
     randind = randind(1:P);
@@ -77,7 +77,7 @@ for ep=1:epoch
             Accr = Accr/max(cycle,batch)*100;
             accr_graph(end+1) = Accr;
             disp(['iter = ' num2str(iter8+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
-                '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
+                '; accr = ' num2str(Accr) '%; time = ' num2str(toc(tt2)) ';']);
             Accr = 0;
         end
     end
@@ -85,7 +85,7 @@ for ep=1:epoch
 end
 
 %% clearing unnecessary variables
-clearvars num iter7 iter8 ep me mi W Wend F Accr randind min_phase alpha p I max_batch;
+clearvars num iter7 iter8 ep me mi W Wend F Accr randind min_phase alpha p I max_batch tt2;
 if deleted == true
     clearvars epoch P cycle Target batch LossFunc sce_factor DOES_MASK;
 else

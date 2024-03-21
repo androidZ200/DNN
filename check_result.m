@@ -1,18 +1,18 @@
 
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
-if exist('batch', 'var') ~= 1; batch = 40; end
+if exist('max_batch', 'var') ~= 1; max_batch = 40; end
 if isempty(gcp('nocreate')); parpool; end
 
-tic;
-parfor iter3=1:size(Test,3)/batch
-    num = TestLabel((iter3-1)*batch+1:iter3*batch)';
+ttcr = tic;
+parfor iter3=1:size(Test,3)/max_batch
+    num = TestLabel((iter3-1)*max_batch+1:iter3*max_batch)';
     % running through the system
-    W = GetImage(Test(:,:,(iter3-1)*batch+1:iter3*batch));
+    W = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
     Scores = recognize(W,Propagations,DOES,MASK,is_max);
     
     tmp_tabl = zeros(size(MASK,3), size(Test,3), 'single');
-    tmp_tabl(:,(iter3-1)*batch+1:iter3*batch) = Scores;
+    tmp_tabl(:,(iter3-1)*max_batch+1:iter3*max_batch) = Scores;
     TestScores = TestScores + tmp_tabl;
 end
 %%
@@ -31,7 +31,7 @@ int_tabl = sum(int_tabl,3);
 % accuracy info
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl))*100;
 int_tabl = int_tabl./sum(int_tabl)*100;
-display(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc)]);
+disp(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc(ttcr))]);
 % min contrast info
 T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
@@ -42,7 +42,7 @@ if ~is_max
     disp(['avg energy = ' num2str(avg_energy*100) '%']);
 end
 
-clearvars argmax W iter3 num Scores T batch tmp_tabl;
+clearvars argmax W iter3 num Scores T max_batch tmp_tabl ttcr;
 return
 
 

@@ -25,6 +25,8 @@ DOES = single(DOES);
 DOES_MASK = single(DOES_MASK);
 if exist('tmp_data', 'var') ~= 1
     tmp_data = zeros(N,N,size(DOES,3),'single');
+else
+    tmp_data = single(tmp_data);
 end
 
 % for Gauss Loss Function
@@ -37,7 +39,7 @@ if strcmp(LossFunc, 'Target')
 end
 
 %% training
-tic;
+tt1 = tic;
 for ep=1:epoch
     randind = randperm(size(Train,3));
     randind = randind(1:P);
@@ -92,7 +94,7 @@ for ep=1:epoch
             aint_graph(end+1) = Aint;
 
             disp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
-                '; accr = ' num2str(Accr) '%; time = ' num2str(toc) ';']);
+                '; accr = ' num2str(Accr) '%; time = ' num2str(toc(tt1)) ';']);
             Accr = 0;
             Aint = 0;
         end
@@ -101,7 +103,7 @@ for ep=1:epoch
 end
 
 %% clearing unnecessary variables
-clearvars num iter7 ep me mi W Wend F sortme Accr Aint randind gradient p I alpha;
+clearvars num iter7 ep me mi W Wend F sortme Accr Aint randind gradient p I alpha tt1;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle ...
         deleted Target tmp_data sce_factor target_scores iter_gradient DOES_MASK;
