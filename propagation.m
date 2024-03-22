@@ -3,7 +3,7 @@ function Out = propagation(Field, U, method)
 
 
     switch(method)
-        case 'fresnel'
+        case {'fresnel', 'sinc'}
             Out = pagemtimes(U, pagemtimes(Field, U.'));
         case 'fft'
             Out = ifft2(fft2(Field).*U);
