@@ -5,7 +5,7 @@ function Out = propagation(Field, U, method)
     switch(method)
         case {'fresnel', 'sinc'}
             Out = pagemtimes(U, pagemtimes(Field, U.'));
-        case 'fft'
+        case {'ASM', 'sphere'}
             Out = ifft2(fft2(Field).*U);
         otherwise
             error('this method propagation not exist');

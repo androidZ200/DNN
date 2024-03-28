@@ -5,7 +5,7 @@ if exist('N', 'var') ~= 1; N = 512; end % total area size
 if exist('pixel', 'var') ~= 1; pixel = 4e-6; end % next pixel size
 if exist('spixel', 'var') ~= 1; spixel = pixel; end % source pixel size
 if exist('is_max', 'var') ~= 1; is_max = true; end  % find max or sum in MASKs
-if exist('m_prop', 'var') ~= 1; m_prop = 'fft'; end  % method propagation
+if exist('m_prop', 'var') ~= 1; m_prop = 'ASM'; end  % method propagation
 
 B = pixel*N/2; % half-size of the entire area
 k = 2*pi/lambda;
@@ -27,7 +27,7 @@ end
 
 
 if exist('DOES', 'var') ~= 1;
-    DOES = exp(2i*pi*(rand(N,N,length(Propagations),'single')-0.5)/10);
+    DOES = exp(2i*pi*(rand(N,N,length(Propagations),'single')-0.5)/4);
 end
 
 

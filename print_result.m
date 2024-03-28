@@ -1,5 +1,5 @@
 
-if exist('P', 'var') ~= 1; P = 5; end
+if exist('Size', 'var') ~= 1; Size = 5; end
 if exist('delay', 'var') ~= 1; delay = 0.2; end
 
 % colormap in shades of Samara university
@@ -12,7 +12,7 @@ yy = [1 -1 -1 1 1]*G_size_y/2;
        
 fig = figure('position', [100 100 1500 400]);
 for num=1:ln
-    for p=1:P
+    for iter10=1:Size
         % getting results
         ind = find(TestLabel == num);
         nt = randi([1,length(ind)]);
@@ -56,4 +56,4 @@ for num=1:ln
 end
 close(fig);
 
-clearvars fig nt p P num F W tmp ssau xx yy ind C delay;
+clearvars fig nt iter10 Size num F W tmp ssau xx yy ind C delay;
