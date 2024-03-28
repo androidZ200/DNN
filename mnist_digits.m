@@ -1,7 +1,6 @@
 
-% path = 'D:/mnist/';
-load('D:/mnist/Train.mat');
-load('D:/mnist/Test.mat');
+load('datasets/mnist/Train.mat');
+load('datasets/mnist/Test.mat');
 
 % what numbers will we teach
 nums = [0 1 2 3 4 5 6 7 8 9];
@@ -9,38 +8,43 @@ ln = length(nums);
 
 % delete unused digits
 ind = find(ismember(TrainLabel, nums));
-Train = Train(:,:,ind);
+Train = gpuArray(single(Train(:,:,ind)));
 TrainLabel = TrainLabel(ind);
 ind = find(ismember(TestLabel, nums));
-Test = Test(:,:,ind);
+Test = gpuArray(single(Test(:,:,ind)));
 TestLabel = TestLabel(ind);
 
 % rename digits label
-tmp_label = zeros(length(TestLabel),1);
+tmp_label = zeros(length(TestLabel),1, 'single');
 for iter99 = 1:ln
     tmp_label = tmp_label + (TestLabel == nums(iter99))*iter99;
 end
 TestLabel = tmp_label;
-tmp_label = zeros(length(TrainLabel),1);
+tmp_label = zeros(length(TrainLabel),1, 'single');
 for iter99 = 1:ln
     tmp_label = tmp_label + (TrainLabel == nums(iter99))*iter99;
 end
 TrainLabel = tmp_label;
 
-G_size_x = 0.2e-3/metric; % size of focus areas X
-G_size_y = 0.2e-3/metric; % size of focus areas X
+% size of focus area
+if exist('G_size_x', 'var') ~= 1; G_size_x = 0.2e-3; end
+if exist('G_size_y', 'var') ~= 1; G_size_y = 0.2e-3; end
 
-aa = (1.5e-3/metric - G_size_x)/3;
-hh = (1.2e-3/metric - G_size_y)/2;
+% size all area
+if exist('aa', 'var') ~= 1; aa = 1.5e-3; end
+if exist('hh', 'var') ~= 1; hh = 1.2e-3; end
+aa = (aa - G_size_x)/3;
+hh = (hh - G_size_y)/2;
 
 % coordinates of the centers of the focus areas
-coords = [-1.5*aa -hh; -0.5*aa -hh; 0.5*aa -hh; 1.5*aa -hh; ...
-          -1.5*aa   0;                          1.5*aa   0; ...
-          -1.5*aa  hh; -0.5*aa  hh; 0.5*aa  hh; 1.5*aa  hh];
-MASK = gpuArray(zeros(N,N,ln));
-
-for iter99=1:ln
-    MASK(:,:,iter99) = (abs(X-coords(iter99,1)) < G_size_x/2).*(abs(Y-coords(iter99,2)) < G_size_y/2);
+if exist('coords', 'var') ~= 1
+    coords = [-1.5*aa -hh; -0.5*aa -hh; 0.5*aa -hh; 1.5*aa -hh; ...
+              -1.5*aa   0;                          1.5*aa   0; ...
+              -1.5*aa  hh; -0.5*aa  hh; 0.5*aa  hh; 1.5*aa  hh];
 end
+
+MASK = single((abs(X - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
+              (abs(Y - permute(coords(:,2), [3 2 1])) < G_size_y/2));
+MASK = gpuArray(MASK);
 
 clearvars ind aa hh iter99 nums tmp_label;

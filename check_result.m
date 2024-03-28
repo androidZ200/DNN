@@ -1,49 +1,59 @@
 
-err_tabl = zeros(ln); % error table
-int_tabl = zeros(ln); % intensity table
+TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
-avg_energy = 0;
-tic;
-parfor iter=1:size(Test,3);
-    num = TestLabel(iter);
+if exist('max_batch', 'var') ~= 1; max_batch = 40; end
+if isempty(gcp('nocreate')); parpool; end
+
+ttcr = tic;
+parfor iter3=1:size(Test,3)/max_batch
+    num = TestLabel((iter3-1)*max_batch+1:iter3*max_batch)';
     % running through the system
-    W = GetImage(Test(:,:,iter));
+    W = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
     Scores = recognize(W,Propagations,DOES,MASK,is_max);
-    Scores = Scores(1:ln);
-    avg_energy = avg_energy + sum(Scores);
-
-    [~, argmax] = max(Scores);
-    tmp_tabl = zeros(ln);
-    tmp_tabl(argmax, num) = 1;
-    err_tabl = err_tabl + tmp_tabl;
-    tmp_tabl(:,num) = Scores/sum(Scores);
-    int_tabl = int_tabl + tmp_tabl;
+    
+    tmp_tabl = zeros(size(MASK,3), size(Test,3), 'single');
+    tmp_tabl(:,(iter3-1)*max_batch+1:iter3*max_batch) = Scores;
+    TestScores = TestScores + tmp_tabl;
 end
+%%
+% error table
+[~, argmax] = max(TestScores);
+err_tabl = zeros(size(MASK,3), ln, size(Test,3), 'single');
+err_tabl(argmax + size(MASK,3)*(TestLabel'-1) + (size(MASK,3))*ln*(0:(size(Test,3)-1))) = 1;
+err_tabl = sum(err_tabl,3);
 
-accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
-int_tabl = int_tabl./repmat(sum(int_tabl, 1), [ln 1])*100;
-display(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc)]);
-T = int_tabl;
-for iter=1:ln
-    T(:,iter) = sort(T(:,iter));
-end
+% intensity table
+int_tabl = zeros(size(MASK,3), ln*size(Test,3), 'single');
+int_tabl(:, TestLabel'+(0:(size(Test,3)-1))*ln) = TestScores./sum(TestScores);
+int_tabl = reshape(int_tabl, size(MASK,3), ln, []);
+int_tabl = sum(int_tabl,3);
+%%
+% accuracy info
+accuracy = sum(diag(err_tabl))/sum(sum(err_tabl))*100;
+int_tabl = int_tabl./sum(int_tabl)*100;
+disp(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc(ttcr))]);
+% min contrast info
+T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
-display(['min contrast = ' num2str(min_contrast) '%;']);
-display(['avg energy = ' num2str(avg_energy/size(Test,3)*100) '%']);
+disp(['min contrast = ' num2str(min_contrast) '%;']);
+% effectiveness info
+if ~is_max
+    avg_energy = sum(sum(TestScores(1:ln,:)))/size(Test,3);
+    disp(['avg energy = ' num2str(avg_energy*100) '%']);
+end
 
-clearvars argmax W iter num Scores tmp_tabl T;
+clearvars argmax W iter3 num Scores T max_batch tmp_tabl ttcr;
 return
+
 
 %% error table
 % output of a beautiful error table
 grad = 100;
-% figure('position', [500 500 1000 500]);
 figure;
-imagesc(0:9,0:9,err_tabl./repmat(sum(err_tabl,1), [ln, 1])*100);
+imagesc(0:(ln-1),0:(size(MASK,3)-1), bsxfun(@rdivide, err_tabl, sum(err_tabl)));
 colormap([linspace(1, 32/255, grad)', linspace(1, 145/255, grad)', linspace(1, 201/255, grad)']);
-% colormap(repmat(linspace(1, 0.5, grad)', [1 3]));
 for ii = 1:ln
-    for jj = 1:ln
+    for jj = 1:size(MASK,3)
         color = [0 0 0];
         if err_tabl(jj, ii)/sum(err_tabl(:, ii)) > 0.5
             color = [1 1 1];
@@ -52,7 +62,6 @@ for ii = 1:ln
             'HorizontalAlignment', 'center');
     end
 end
-clearvars ii jj grad color;
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
 title(['accuracy = ' num2str(accuracy) '%;']);
 display(['accuracy = ' num2str(accuracy) '%;']);
@@ -62,22 +71,17 @@ return;
 %% intensity table
 % output of a beautiful intensity table
 grad = 100;
-% figure('position', [500 500 1000 500]);
 figure;
-imagesc(0:9,0:9,int_tabl);
+imagesc(0:(ln-1),0:(size(MASK,3)-1), int_tabl);
 colormap([linspace(1, 201/255, grad)', linspace(1, 88/255, grad)', linspace(1, 32/255, grad)']);
-% colormap(repmat(linspace(1, 0, grad)', [1 3]));
 for ii = 1:ln
-    for jj = 1:ln
+    for jj = 1:size(MASK,3)
         color = [0 0 0];
         text(ii-1, jj-1, sprintf('%.1f', int_tabl(jj, ii)), 'fontsize', 14, ...
             'color', color, 'HorizontalAlignment', 'center');
     end
 end
-T = int_tabl;
-for ii=1:ln
-    T(:,ii) = sort(T(:,ii));
-end
+T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
 title(['min contrast = ' num2str(min_contrast) '%;']);
 display(['min contrast = ' num2str(min_contrast) '%;']);

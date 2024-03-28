@@ -1,5 +1,4 @@
 function E = get_energy(W, MASK)
     % energy in the area (sum)
-    E = sum(sum(abs(W.*MASK).^2));
-    E = gather(E);
+    E = squeeze(sum(sum(abs(W).^2 .* MASK)));
 end

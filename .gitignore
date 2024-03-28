@@ -2,3 +2,5 @@
 *.asv
 *.fig
 data/*
+!./_Fresnel_data_.mat
+script[0-9].m
