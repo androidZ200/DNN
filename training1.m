@@ -72,9 +72,13 @@ for ep=1:epoch
             case 'Target' % the integral Target function
                 F = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
             case 'MSE' % mean squared error
-                p = me;
-                p = p - target_scores(:,num);
+                p = me - target_scores(:,num);
                 p = 4*(p-sum(me.*p))./I;
+                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+            case 'MAE' % mean absolute error
+                p = me - target_scores(:,num);
+                p = p ./ abs(p); p(isnan(p)) = 0;
+                p = 2*(p-sum(me.*p))./I;
                 F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             case 'SCE' % softmax cross entropy
                 p = exp(sce_factor*me); 
