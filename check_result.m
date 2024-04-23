@@ -2,10 +2,9 @@
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if exist('max_batch', 'var') ~= 1; max_batch = 40; end
-if isempty(gcp('nocreate')); parpool; end
 
 ttcr = tic;
-parfor iter3=1:size(Test,3)/max_batch
+for iter3=1:size(Test,3)/max_batch
     num = TestLabel((iter3-1)*max_batch+1:iter3*max_batch)';
     % running through the system
     W = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));

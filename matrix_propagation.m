@@ -16,7 +16,7 @@ function U = matrix_propagation( X, Y, f, k, method )
             U = U*sqrt(exp(1i*k*f)/2i);
         case 'ASM'
             N = size(X,1);
-            kx = linspace(-pi/pixel, pi/pixel, N+1); kx(end) = [];
+            kx = gpuArray(linspace(-pi/pixel, pi/pixel, N+1)); kx(end) = [];
             [Kx, Ky] = meshgrid(kx, kx);
             U = circshift(Kx.^2 + Ky.^2, [N/2 N/2]);
             U = exp(1i*f*single(sqrt(k^2 - U)));
