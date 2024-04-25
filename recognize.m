@@ -1,6 +1,6 @@
-function [Score, F, CoordScore] = recognize(Input, Propogations, DOES, MASK, is_max)
+function [Score, Fields, CoordScore] = recognize(Fields, Propogations, DOES, MASK, is_max)
     % running the image through the system and ratings
-    F = direct_propagation(Input, Propogations, DOES);
-    [Score, CoordScore] = get_scores(F(:,:,end,:), MASK, is_max);
+    Fields = direct_propagation(Fields, Propogations, DOES);
+    [Score, CoordScore] = get_scores(Fields(:,:,end,:), MASK, is_max);
 end
 

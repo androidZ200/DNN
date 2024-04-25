@@ -22,16 +22,14 @@ end
 DOES = save;
 check_result;
 accr(:,1) = accuracy;
-<<<<<<< HEAD
+minc(:,1) = min_contrast;
 
 figure; hold on; grid on;
 for iter4 = 1:rep
     plot(nois, accr(iter4,:), '-r');
 end
 plot(nois, mean(accr), '-k', 'LineWidth', 3);
-=======
-minc(:,1) = min_contrast;
->>>>>>> main
+
 
 clearvars rep save iter3 iter4;
 return;

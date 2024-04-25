@@ -28,6 +28,10 @@ if exist('tmp_data', 'var') ~= 1
 else
     tmp_data = single(tmp_data);
 end
+W = gpuArray(zeros(N,N,length(Propagations)  ,batch));
+F = gpuArray(zeros(N,N,length(Propagations)-1,batch));
+if (~is_max); MASK = repmat(MASK, [1 1 1 batch]); end
+
 
 % for Gauss Loss Function
 if strcmp(LossFunc, 'Target')
@@ -47,7 +51,7 @@ for ep=1:epoch
         num = TrainLabel(randind(iter7+(0:batch-1)))';
 
         % direct propagation
-        W = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
+        W(:,:,1,:) = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
         [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
         I = sum(me);
         me = me./I;
@@ -57,28 +61,27 @@ for ep=1:epoch
         
         % training
         Wend = conj(W(:,:,end,:));
-        W(:,:,end,:) = [];
         switch LossFunc
             case 'Target' % the integral Target function
-                F = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
+                F(:,:,end,:) = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
             case 'MSE' % mean squared error
                 p = me;
                 p = p - target_scores(:,num);
                 p = 4*(p-sum(me.*p))./I;
-                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             case 'SCE' % softmax cross entropy
                 p = exp(sce_factor*me); 
                 p = p./sum(p);
                 alpha = target_scores(:,num);
                 p = (p-sum(p.*me)).*sum(alpha) + sum(alpha.*me) - alpha;
                 p = p*sce_factor*2./I;
-                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             otherwise
                 error(['Loss function "' name '" is not exist']);
         end
         % reverse propagation
         F = reverse_propagation(F, Propagations, DOES);
-        gradient = -imag(sum(W.*F, 4).*DOES);
+        gradient = -imag(sum(W(:,:,1:end-1,:).*F, 4).*DOES);
     
         % updating weights
         iter_gradient = iter_gradient + 1;
@@ -103,6 +106,7 @@ for ep=1:epoch
 end
 
 %% clearing unnecessary variables
+if (~is_max); MASK = MASK(:,:,:,1); end
 clearvars num iter7 ep me mi W Wend F sortme Accr Aint randind gradient p I alpha tt1;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle ...
