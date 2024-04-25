@@ -17,6 +17,7 @@ if exist('sosh_factor', 'var') ~= 1; sosh_factor = 10; end
 if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln,'single'); end
 if exist('max_offsets', 'var') ~= 1; max_offsets = 0; end
 if exist('iter_gradient', 'var') ~= 1; iter_gradient = 0; end
+if exist('tmp_data', 'var') ~= 1; tmp_data =  zeros(N,N,size(DOES,3),'single'); end
 
 batch = min(batch, P);
 Accr = 0;
@@ -25,11 +26,10 @@ accr_graph(1) = nan;
 aint_graph(1) = nan;
 DOES = single(DOES);
 DOES_MASK = single(DOES_MASK);
-if exist('tmp_data', 'var') ~= 1
-    tmp_data = zeros(N,N,size(DOES,3),'single');
-else
-    tmp_data = single(tmp_data);
-end
+tmp_data = single(tmp_data);
+W = zeros(N,N,length(Propagations)  ,batch);
+F = zeros(N,N,length(Propagations)-1,batch);
+if (~is_max); MASK = repmat(MASK, [1 1 1 batch]); end
 
 % for Gauss Loss Function
 if strcmp(LossFunc, 'Target')
@@ -39,6 +39,8 @@ if strcmp(LossFunc, 'Target')
     end
     Target = single(permute(Target, [1 2 4 3]));
 end
+
+GPU_CPU;
 
 %% training
 tt1 = tic;
@@ -58,7 +60,7 @@ for ep=1:epoch
         end
         
         % direct propagation
-        W = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
+        W(:,:,1,:) = GetImage(Train(:,:,randind(iter7+(0:batch-1))));
         [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
         I = sum(me);
         me = me./I;
@@ -68,39 +70,38 @@ for ep=1:epoch
         
         % training
         Wend = conj(W(:,:,end,:));
-        W(:,:,end,:) = [];
         switch LossFunc
             case 'Target' % the integral Target function
-                F = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
+                F(:,:,end,:) = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
             case 'Sosh'
                 p = me >= me(num+(0:batch-1)*size(MASK,3));
                 p = -(sum(me.*p)./sum(p) - me).*p;
                 d = sqrt(sum(p.^2));
                 p = p./d.*exp(-d*sosh_factor); p(isnan(p)) = 0;
                 p = 2*(p-sum(me.*p))./I;
-                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             case 'MSE' % mean squared error
                 p = me - target_scores(:,num);
                 p = 4*(p-sum(me.*p))./I;
-                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             case 'MAE' % mean absolute error
                 p = me - target_scores(:,num);
                 p = p ./ abs(p); p(isnan(p)) = 0;
                 p = 2*(p-sum(me.*p))./I;
-                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             case 'SCE' % softmax cross entropy
                 p = exp(sce_factor*me); 
                 p = p./sum(p);
                 alpha = target_scores(:,num);
                 p = (p-sum(p.*me)).*sum(alpha) + sum(alpha.*me) - alpha;
                 p = p*sce_factor*2./I;
-                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             otherwise
                 error(['Loss function "' name '" is not exist']);
         end
         % reverse propagation
         F = reverse_propagation(F, Propagations, DOES);
-        gradient = -imag(sum(W.*F, 4).*DOES);
+        gradient = -imag(sum(W(:,:,1:end-1,:).*F, 4).*DOES);
     
         % updating weights
         iter_gradient = iter_gradient + 1;
@@ -133,6 +134,8 @@ for ep=1:epoch
 end
 
 %% clearing unnecessary variables
+
+if (~is_max); MASK = MASK(:,:,:,1); end
 clearvars num iter7 iter8 ep me mi W Wend F sortme Accr Aint randind gradient p I alpha tt1 d;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle deleted Target tmp_data ...

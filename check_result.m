@@ -2,18 +2,15 @@
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if exist('max_batch', 'var') ~= 1; max_batch = 40; end
-if isempty(gcp('nocreate')); parpool; end
+W = zeros(N,N,length(Propagations),max_batch);
+GPU_CPU;
 
 ttcr = tic;
-parfor iter3=1:size(Test,3)/max_batch
+for iter3=1:size(Test,3)/max_batch
     num = TestLabel((iter3-1)*max_batch+1:iter3*max_batch)';
     % running through the system
-    W = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
-    Scores = recognize(W,Propagations,DOES,MASK,is_max);
-    
-    tmp_tabl = zeros(size(MASK,3), size(Test,3), 'single');
-    tmp_tabl(:,(iter3-1)*max_batch+1:iter3*max_batch) = Scores;
-    TestScores = TestScores + tmp_tabl;
+    W(:,:,1,:) = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
+    TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = recognize(W,Propagations,DOES,MASK,is_max);
 end
 %%
 % error table
@@ -42,7 +39,7 @@ if ~is_max
     disp(['avg energy = ' num2str(avg_energy*100) '%']);
 end
 
-clearvars argmax W iter3 num Scores T max_batch tmp_tabl ttcr;
+clearvars argmax W iter3 num T max_batch ttcr;
 return
 
 
