@@ -10,28 +10,24 @@ if exist('method', 'var') ~= 1; method = 'SGD'; end
 if exist('params', 'var') ~= 1; params = []; end
 if exist('cycle', 'var') ~= 1; cycle = 200; end
 if exist('deleted', 'var') ~= 1; deleted = true; end
-if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = gpuArray(ones(N,N,length(Propagations),'single')); end
+if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations),'single'); end
 if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
 if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
-if exist('target_scores', 'var') ~= 1; target_scores = gpuArray(eye(size(MASK,3),ln,'single')); end
+if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln,'single'); end
 if exist('iter_gradient', 'var') ~= 1; iter_gradient = 0; end
+if exist('tmp_data', 'var') ~= 1; tmp_data =  zeros(N,N,size(DOES,3),'single'); end
 
 batch = min(batch, P);
 Accr = 0;
 Aint = 0;
 accr_graph(1) = nan;
 aint_graph(1) = nan;
-DOES = gpuArray(single(DOES));
-DOES_MASK = gpuArray(single(DOES_MASK));
-if exist('tmp_data', 'var') ~= 1
-    tmp_data =  gpuArray(zeros(N,N,size(DOES,3),'single'));
-else
-    tmp_data = single(tmp_data);
-end
-W = gpuArray(zeros(N,N,length(Propagations)  ,batch));
-F = gpuArray(zeros(N,N,length(Propagations)-1,batch));
+DOES = single(DOES);
+DOES_MASK = single(DOES_MASK);
+tmp_data = single(tmp_data);
+W = zeros(N,N,length(Propagations)  ,batch);
+F = zeros(N,N,length(Propagations)-1,batch);
 if (~is_max); MASK = repmat(MASK, [1 1 1 batch]); end
-
 
 % for Gauss Loss Function
 if strcmp(LossFunc, 'Target')
@@ -39,8 +35,10 @@ if strcmp(LossFunc, 'Target')
         Target = ((X - permute(coords(:,1), [3 2 1])).^2 + (Y - permute(coords(:,2), [3 2 1])).^2)/(spixel*7)^2;
         Target = normalize_field(exp(-Target)).^2;
     end
-    Target = gpuArray(single(permute(Target, [1 2 4 3])));
+    Target = single(permute(Target, [1 2 4 3]));
 end
+
+GPU_CPU;
 
 %% training
 tt1 = tic;

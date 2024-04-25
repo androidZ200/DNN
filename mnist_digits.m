@@ -8,10 +8,10 @@ ln = length(nums);
 
 % delete unused digits
 ind = find(ismember(TrainLabel, nums));
-Train = gpuArray(single(Train(:,:,ind)));
+Train = single(Train(:,:,ind));
 TrainLabel = TrainLabel(ind);
 ind = find(ismember(TestLabel, nums));
-Test = gpuArray(single(Test(:,:,ind)));
+Test = single(Test(:,:,ind));
 TestLabel = TestLabel(ind);
 
 % rename digits label
@@ -45,6 +45,5 @@ end
 
 MASK = single((abs(X - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
               (abs(Y - permute(coords(:,2), [3 2 1])) < G_size_y/2));
-MASK = gpuArray(MASK);
 
 clearvars ind aa hh iter99 nums tmp_label;

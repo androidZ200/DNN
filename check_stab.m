@@ -9,13 +9,13 @@ minc = zeros(rep,length(nois), 'single');
 save=DOES; % we keep the original solution
 
 for iter4=1:rep
-    for iter3=length(nois):-1:2
+    for iter5=length(nois):-1:2
         % add random noise and check the result
-        display(['noise = ' num2str(nois(iter3)) '(' num2str(iter4) ')']);
-        DOES = exp(1i*(angle(save) + (rand(N,N,size(DOES,3))*2-1)*nois(iter3)));
+        display(['noise = ' num2str(nois(iter5)) '(' num2str(iter4) ')']);
+        DOES = exp(1i*(angle(save) + (rand(N,N,size(DOES,3))*2-1)*nois(iter5)));
         check_result;
-        accr(iter4,iter3) = accuracy;
-        minc(iter4,iter3) = min_contrast;
+        accr(iter4,iter5) = accuracy;
+        minc(iter4,iter5) = min_contrast;
     end
 end
 
@@ -31,7 +31,7 @@ end
 plot(nois, mean(accr), '-k', 'LineWidth', 3);
 
 
-clearvars rep save iter3 iter4;
+clearvars rep save iter4 iter5;
 return;
 
 %% accuracy graph

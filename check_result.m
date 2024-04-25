@@ -2,7 +2,8 @@
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if exist('max_batch', 'var') ~= 1; max_batch = 40; end
-W = gpuArray(zeros(N,N,length(Propagations),max_batch));
+W = zeros(N,N,length(Propagations),max_batch);
+GPU_CPU;
 
 ttcr = tic;
 for iter3=1:size(Test,3)/max_batch

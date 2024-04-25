@@ -9,6 +9,8 @@ ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
 % to draw squares
 xx = [-1 -1 1 1 -1]*G_size_x/2;
 yy = [1 -1 -1 1 1]*G_size_y/2;
+F = zeros(N,N,length(Propagations),1);
+GPU_CPU;
        
 fig = figure('position', [100 100 1500 400]);
 for num=1:ln
@@ -17,7 +19,9 @@ for num=1:ln
         ind = find(TestLabel == num);
         nt = randi([1,length(ind)]);
         W = Test(:,:,ind(nt));
-        [tmp, F] = recognize(GetImage(W),Propagations,DOES,MASK,is_max);
+        
+        F(:,:,1,:) = GetImage(W);
+        [tmp, F] = recognize(F,Propagations,DOES,MASK,is_max);
         tmp = tmp(1:ln);
         tmp = tmp./sum(tmp);
 
