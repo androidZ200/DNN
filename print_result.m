@@ -1,11 +1,11 @@
 
-if exist('Size', 'var') ~= 1; Size = 5; end
+if exist('Size', 'var') ~= 1; Size = 6; end
 if exist('delay', 'var') ~= 1; delay = 0.2; end
 
 % colormap in shades of Samara university
 ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
-		   linspace(1, 145/255, 50), linspace(145/255, 0, 100); ...
-		   linspace(1, 201/255, 50), linspace(201/255, 0, 100)]';
+		linspace(1, 145/255, 50), linspace(145/255, 0, 100); ...
+		linspace(1, 201/255, 50), linspace(201/255, 0, 100)]';
 % to draw squares
 xx = [-1 -1 1 1 -1]*G_size_x/2;
 yy = [1 -1 -1 1 1]*G_size_y/2;

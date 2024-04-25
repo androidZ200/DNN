@@ -12,7 +12,8 @@ if exist('cycle', 'var') ~= 1; cycle = 200; end
 if exist('deleted', 'var') ~= 1; deleted = true; end
 if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations),'single'); end
 if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
-if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
+if exist('sce_factor', 'var') ~= 1; sce_factor = 80; end
+if exist('sosh_factor', 'var') ~= 1; sosh_factor = 10; end
 if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln,'single'); end
 if exist('max_offsets', 'var') ~= 1; max_offsets = 0; end
 if exist('iter_gradient', 'var') ~= 1; iter_gradient = 0; end
@@ -71,6 +72,13 @@ for ep=1:epoch
         switch LossFunc
             case 'Target' % the integral Target function
                 F = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
+            case 'Sosh'
+                p = me >= me(num+(0:batch-1)*size(MASK,3));
+                p = -(sum(me.*p)./sum(p) - me).*p;
+                d = sqrt(sum(p.^2));
+                p = p./d.*exp(-d*sosh_factor); p(isnan(p)) = 0;
+                p = 2*(p-sum(me.*p))./I;
+                F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
             case 'MSE' % mean squared error
                 p = me - target_scores(:,num);
                 p = 4*(p-sum(me.*p))./I;
@@ -125,10 +133,10 @@ for ep=1:epoch
 end
 
 %% clearing unnecessary variables
-clearvars num iter7 iter8 ep me mi W Wend F sortme Accr Aint randind gradient p I alpha tt1;
+clearvars num iter7 iter8 ep me mi W Wend F sortme Accr Aint randind gradient p I alpha tt1 d;
 if deleted == true
-    clearvars P epoch speed slowdown batch LossFunc method params cycle ...
-        deleted Target tmp_data sce_factor target_scores iter_gradient DOES_MASK max_offsets;
+    clearvars P epoch speed slowdown batch LossFunc method params cycle deleted Target tmp_data ...
+        sce_factor target_scores iter_gradient DOES_MASK max_offsets sosh_factor;
 else
     deleted = true;
     if strcmp(LossFunc, 'Target')
