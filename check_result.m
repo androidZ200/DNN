@@ -2,7 +2,7 @@
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if exist('max_batch', 'var') ~= 1; max_batch = 40; end
-W = zeros(N,N,length(Propagations),max_batch);
+W = zeros(N,N,length(Propagations)+1,max_batch);
 GPU_CPU;
 
 ttcr = tic;

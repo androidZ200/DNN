@@ -27,8 +27,8 @@ aint_graph(1) = nan;
 DOES = single(DOES);
 DOES_MASK = single(DOES_MASK);
 tmp_data = single(tmp_data);
-W = zeros(N,N,length(Propagations)  ,batch);
-F = zeros(N,N,length(Propagations)-1,batch);
+W = zeros(N,N,length(Propagations)+1,batch);
+F = zeros(N,N,length(Propagations)+1,batch);
 if (~is_max); MASK = repmat(MASK, [1 1 1 batch]); end
 
 % for Gauss Loss Function
@@ -79,29 +79,29 @@ for ep=1:epoch
                 d = sqrt(sum(p.^2));
                 p = p./d.*exp(-d*sosh_factor); p(isnan(p)) = 0;
                 p = 2*(p-sum(me.*p))./I;
-                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
             case 'MSE' % mean squared error
                 p = me - target_scores(:,num);
                 p = 4*(p-sum(me.*p))./I;
-                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
             case 'MAE' % mean absolute error
                 p = me - target_scores(:,num);
                 p = p ./ abs(p); p(isnan(p)) = 0;
                 p = 2*(p-sum(me.*p))./I;
-                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
             case 'SCE' % softmax cross entropy
                 p = exp(sce_factor*me); 
                 p = p./sum(p);
                 alpha = target_scores(:,num);
                 p = (p-sum(p.*me)).*sum(alpha) + sum(alpha.*me) - alpha;
                 p = p*sce_factor*2./I;
-                F(:,:,end,:) = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
+                F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
             otherwise
                 error(['Loss function "' name '" is not exist']);
         end
         % reverse propagation
         F = reverse_propagation(F, Propagations, DOES);
-        gradient = -imag(sum(W(:,:,1:end-1,:).*F, 4).*DOES);
+        gradient = -imag(sum(W(:,:,1:end-1,:).*F(:,:,1:end-1,:), 4));
     
         % updating weights
         iter_gradient = iter_gradient + 1;

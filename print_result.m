@@ -9,7 +9,7 @@ ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
 % to draw squares
 xx = [-1 -1 1 1 -1]*G_size_x/2;
 yy = [1 -1 -1 1 1]*G_size_y/2;
-F = zeros(N,N,length(Propagations),1);
+F = zeros(N,N,length(Propagations)+1,1);
 GPU_CPU;
        
 fig = figure('position', [100 100 1500 400]);
