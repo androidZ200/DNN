@@ -1,10 +1,7 @@
 % animation of radiation propagation through the entire DOE system
 
 W = Test(:,:,randi([1 size(Test,3)]));
-W = resizeimage(W,N,spixel,pixel);
-W = normalize_field(W);
-score = recognize(propagation(W, U(:,:,1), m_prop), Propagations, DOES, MASK, is_max);
-score = score/sum(score)*100;
+W = normalize_field(resizeimage(W,N,spixel,pixel));
 
 fig = figure;
 imagesc([-B B], [-B B], abs(W));
@@ -25,6 +22,8 @@ for zone=1:length(z)-1
     end
 end
 
+score = get_scores(W,MASK,is_max);
+score = score/sum(score)*100;
 if exist('coords', 'var') == 1
     hold on;
     xx = [-1 -1  1  1 -1]*G_size_x/2;

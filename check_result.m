@@ -10,7 +10,10 @@ for iter3=1:size(Test,3)/max_batch
     num = TestLabel((iter3-1)*max_batch+1:iter3*max_batch)';
     % running through the system
     W(:,:,1,:) = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
-    TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = recognize(W,Propagations,DOES,MASK,is_max);
+    for iter4=1:size(W,3)-1
+        W(:,:,iter4+1,:) = Propagations{iter4}(W(:,:,iter4,:).*DOES(:,:,iter4));
+    end
+    TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(W(:,:,end,:), MASK, is_max);
 end
 %%
 % error table
@@ -39,7 +42,7 @@ if ~is_max
     disp(['avg energy = ' num2str(avg_energy*100) '%']);
 end
 
-clearvars argmax W iter3 num T max_batch ttcr;
+clearvars argmax W iter3 iter4 num T max_batch ttcr;
 return
 
 

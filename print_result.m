@@ -9,7 +9,7 @@ ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...
 % to draw squares
 xx = [-1 -1 1 1 -1]*G_size_x/2;
 yy = [1 -1 -1 1 1]*G_size_y/2;
-F = zeros(N,N,length(Propagations)+1,1);
+F = zeros(N,N,length(Propagations)+1);
 GPU_CPU;
        
 fig = figure('position', [100 100 1500 400]);
@@ -20,8 +20,11 @@ for num=1:ln
         nt = randi([1,length(ind)]);
         W = Test(:,:,ind(nt));
         
-        F(:,:,1,:) = GetImage(W);
-        [tmp, F] = recognize(F,Propagations,DOES,MASK,is_max);
+        F(:,:,1) = GetImage(W);
+        for iter11=1:size(F,3)-1
+            F(:,:,iter11+1) = Propagations{iter11}(F(:,:,iter11).*DOES(:,:,iter11));
+        end
+        tmp = get_scores(F(:,:,end),MASK,is_max);
         tmp = tmp(1:ln);
         tmp = tmp./sum(tmp);
 
@@ -56,8 +59,8 @@ for num=1:ln
 		pause(delay);
         if ~ishandle(fig); return; end
 %         saveas(gca, ['im_' num2str((p-1)*ln+num) '.png']);
-	end
+    end
 end
 close(fig);
 
-clearvars fig nt iter10 Size num F W tmp ssau xx yy ind C delay;
+clearvars fig nt iter10 iter11 Size num F W tmp ssau xx yy ind C delay;

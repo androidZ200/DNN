@@ -15,6 +15,7 @@ if(exist('is_gpu', 'var'))
         if(exist('tmp_data', 'var')); tmp_data = gpuArray(tmp_data); end
         if(exist('Target', 'var')); Target = gpuArray(Target); end
         if(exist('target_scores', 'var')); target_scores = gpuArray(target_scores); end
+        if(exist('gradient', 'var')); gradient = gpuArray(gradient); end
     else
         if(exist('DOES', 'var')); DOES = gather(DOES); end
         if(exist('X', 'var')); X = gather(X); end
@@ -31,5 +32,6 @@ if(exist('is_gpu', 'var'))
         if(exist('tmp_data', 'var')); tmp_data = gather(tmp_data); end
         if(exist('Target', 'var')); Target = gather(Target); end
         if(exist('target_scores', 'var')); target_scores = gather(target_scores); end
+        if(exist('gradient', 'var')); gradient = gather(gradient); end
     end
 end
