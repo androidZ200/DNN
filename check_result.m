@@ -2,18 +2,17 @@
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if exist('max_batch', 'var') ~= 1; max_batch = 40; end
-W = zeros(N,N,length(Propagations)+1,max_batch);
+W = zeros(N,N,1,max_batch, 'single');
 GPU_CPU;
 
 ttcr = tic;
 for iter3=1:size(Test,3)/max_batch
-    num = TestLabel((iter3-1)*max_batch+1:iter3*max_batch)';
     % running through the system
     W(:,:,1,:) = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
-    for iter4=1:size(W,3)-1
-        W(:,:,iter4+1,:) = Propagations{iter4}(W(:,:,iter4,:).*DOES(:,:,iter4));
+    for iter4=1:size(DOES,3)
+        W = Propagations{iter4}(W.*DOES(:,:,iter4));
     end
-    TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(W(:,:,end,:), MASK, is_max);
+    TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(W, MASK, is_max);
 end
 %%
 % error table

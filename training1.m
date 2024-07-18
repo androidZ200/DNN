@@ -5,7 +5,7 @@ if exist('epoch', 'var') ~= 1; epoch = 1; end
 if exist('speed', 'var') ~= 1; speed = 1e-1; end
 if exist('slowdown', 'var') ~= 1; slowdown = 0.999; end
 if exist('batch', 'var') ~= 1; batch = 20; end
-if exist('max_batch', 'var') ~= 1; max_batch = 20; end
+if exist('max_batch', 'var') ~= 1; max_batch = batch; end
 if exist('LossFunc', 'var') ~= 1; LossFunc = 'SCE'; end
 if exist('method', 'var') ~= 1; method = 'SGD'; end
 if exist('params', 'var') ~= 1; params = []; end
@@ -54,10 +54,10 @@ for ep=1:epoch
 
         % rand offsets
         if max_offsets > 0
-            off = randi(max_offsets*2+1, size(DOES,3), 2)-max_offsets-1;
+            off = randi(3, size(DOES,3), 2)-2;
+            off = off*max_offsets;
             for iter8 = 1:size(DOES,3)
                 DOES(:,:,iter8) = circshift(DOES(:,:,iter8), off(iter8,:));
-                tmp_data(:,:,iter8) = circshift(tmp_data(:,:,iter8), off(iter8,:));
             end
         end
 
@@ -91,7 +91,7 @@ for ep=1:epoch
                 case 'MSE' % mean squared error
                     p = me - target_scores(:,num);
                     p = 4*(p-sum(me.*p))./I;
-                    F(:,:,end,:) = Wend.*sum(permute(P,[3 4 1 2]).*mi,3);
+                    F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
                 case 'MAE' % mean absolute error
                     p = me - target_scores(:,num);
                     p = p ./ abs(p); p(isnan(p)) = 0;
@@ -114,19 +114,19 @@ for ep=1:epoch
             gradient = gradient - imag(sum(W(:,:,1:end-1,:).*F(:,:,1:end-1,:), 4));
         end
 
+        % reverse offsets
+        if max_offsets > 0
+            for iter8 = 1:size(DOES,3)
+                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), -off(iter8,:));
+                gradient(:,:,iter8) = circshift(gradient(:,:,iter8), -off(iter8,:));
+            end
+        end
+
         % updating weights
         iter_gradient = iter_gradient + 1;
         [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, iter_gradient]);
         DOES = DOES.*exp(-1i*speed*gradient);
         speed = speed*slowdown;
-
-        % reverse offsets
-        if max_offsets > 0
-            for iter8 = 1:size(DOES,3)
-                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), -off(iter8,:));
-                tmp_data(:,:,iter8) = circshift(tmp_data(:,:,iter8), -off(iter8,:));
-            end
-        end
         
         % data output to the console
         if mod(iter7+batch-1 + ep*P, cycle) == 0
