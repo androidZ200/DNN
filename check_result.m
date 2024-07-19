@@ -6,6 +6,7 @@ W = zeros(N,N,1,max_batch, 'single');
 GPU_CPU;
 
 ttcr = tic;
+ndisp('check result 0%');
 for iter3=1:size(Test,3)/max_batch
     % running through the system
     W(:,:,1,:) = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
@@ -13,6 +14,7 @@ for iter3=1:size(Test,3)/max_batch
         W = Propagations{iter4}(W.*DOES(:,:,iter4));
     end
     TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(W, MASK, is_max);
+    rdisp(['check result ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%']);
 end
 %%
 % error table
@@ -30,15 +32,15 @@ int_tabl = sum(int_tabl,3);
 % accuracy info
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl))*100;
 int_tabl = int_tabl./sum(int_tabl)*100;
-disp(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc(ttcr))]);
+rdisp(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc(ttcr))]);
 % min contrast info
 T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
-disp(['min contrast = ' num2str(min_contrast) '%;']);
+ndisp(['min contrast = ' num2str(min_contrast) '%;']);
 % effectiveness info
 if ~is_max
     avg_energy = sum(sum(TestScores(1:ln,:)))/size(Test,3);
-    disp(['avg energy = ' num2str(avg_energy*100) '%']);
+    ndisp(['avg energy = ' num2str(avg_energy*100) '%']);
 end
 
 clearvars argmax W iter3 iter4 num T max_batch ttcr;
@@ -63,7 +65,7 @@ for ii = 1:ln
 end
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
 title(['accuracy = ' num2str(accuracy) '%;']);
-display(['accuracy = ' num2str(accuracy) '%;']);
+ndisp(['accuracy = ' num2str(accuracy) '%;']);
 clearvars ii jj grad color;
 return;
 
@@ -83,6 +85,6 @@ end
 T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
 title(['min contrast = ' num2str(min_contrast) '%;']);
-display(['min contrast = ' num2str(min_contrast) '%;']);
+ndisp(['min contrast = ' num2str(min_contrast) '%;']);
 clearvars ii jj grad T color;
 return;

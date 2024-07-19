@@ -11,7 +11,7 @@ for iter4 = 1:length(quants)
     phi = angle(save) + pi;
     phi = floor(phi/2/pi*quants(iter4))*2*pi/quants(iter4);
     DOES = exp(1i*phi);
-    disp(['quant = ' num2str(quants(iter4))]);
+    ndisp(['quant = ' num2str(quants(iter4))]);
     check_result;
     q_accr(iter4) = accuracy;
     q_minc(iter4) = min_contrast;

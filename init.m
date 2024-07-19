@@ -17,10 +17,7 @@ x = single(linspace(-B, B, N+1)); x(end) = []; x = x + B/N;
 
 
 % matrixes propagations
-U = zeros(N,N,length(z)-1,'single');
-for iter99=1:length(z)-1
-    U(:,:,iter99) = matrix_propagation(X,Y,z(iter99+1)-z(iter99),k,m_prop);
-end
+U = matrix_propagation(X,Y,permute(z(2:end)-z(1:end-1),[1 3 2]),k,m_prop);
 
 if exist('DOES', 'var') ~= 1; DOES = exp(2i*pi*(rand(N,N,length(z)-2,'single')-0.5)/4); end
 

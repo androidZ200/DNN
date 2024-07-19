@@ -9,8 +9,9 @@ off_int_table = zeros(max_offsets*2+1);
 save_doe = DOES;
 for iter1 = -max_offsets:max_offsets
     for iter2 = -max_offsets:max_offsets
-        display(['offsets = (' num2str(iter2) ', ' num2str(iter1) ');']);
+        ndisp(['offsets = (' num2str(iter2) ', ' num2str(iter1) ');']);
         DOES(:,:,num_doe) = circshift(save_doe(:,:,num_doe), [iter1 iter2]);
+        % max_batch = 20;
         check_result;
         off_err_table(iter1+max_offsets+1,iter2+max_offsets+1) = accuracy;
         off_int_table(iter1+max_offsets+1,iter2+max_offsets+1) = min_contrast;

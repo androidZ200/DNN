@@ -40,7 +40,7 @@ for num_doe = 1:length(Propagations) % we teach DOE in turn starting from 1
         Weights = Weights - 0.001*(diag(err_tabl) - accuracy);
     end
     
-    display(['DOE ' num2str(num_doe) ' from ' num2str(length(z)-1) ' is done; time = ' num2str(toc) ' s']);
+    ndisp(['DOE ' num2str(num_doe) ' from ' num2str(length(z)-1) ' is done; time = ' num2str(toc) ' s']);
 end
 
 clearvars alpha beta num_doe AAA AA num CURR P iter begin dd iter4 vv;

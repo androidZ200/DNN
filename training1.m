@@ -46,6 +46,7 @@ GPU_CPU;
 
 %% training
 tt1 = tic;
+ndisp();
 for ep=1:epoch
     randind = randperm(size(Train,3));
     randind = randind(1:P);
@@ -60,7 +61,7 @@ for ep=1:epoch
                 DOES(:,:,iter8) = circshift(DOES(:,:,iter8), off(iter8,:));
             end
         end
-
+        
         for iter9=0:min(batch, max_batch):(batch-1)
             num = TrainLabel(randind(iter7+iter9+(0:min(batch, max_batch)-1)))';
             
@@ -112,6 +113,7 @@ for ep=1:epoch
                 F(:,:,iter8,:) = Propagations{iter8}(F(:,:,iter8+1,:)).*DOES(:,:,iter8);
             end
             gradient = gradient - imag(sum(W(:,:,1:end-1,:).*F(:,:,1:end-1,:), 4));
+            rdisp(['training ' num2str(mod((iter7+iter9+ep*P-1),cycle)/cycle*100,'%.2f') '%']);
         end
 
         % reverse offsets
@@ -135,8 +137,9 @@ for ep=1:epoch
             accr_graph(end+1) = Accr;
             aint_graph(end+1) = Aint;
 
-            disp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
+            rdisp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
                 '; accr = ' num2str(Accr) '%; time = ' num2str(toc(tt1)) ';']);
+            ndisp();
             Accr = 0;
             Aint = 0;
         end
