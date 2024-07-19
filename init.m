@@ -1,13 +1,13 @@
 % setting the system parameters
 
-if exist('lambda', 'var') ~= 1; lambda = 0.532e-6; end  % wavelength
-if exist('N', 'var') ~= 1; N = 512; end % total area size
-if exist('pixel', 'var') ~= 1; pixel = 4e-6; end % next pixel size
-if exist('spixel', 'var') ~= 1; spixel = pixel; end % source pixel size
-if exist('is_max', 'var') ~= 1; is_max = true; end  % find max or sum in MASKs
-if exist('is_gpu', 'var') ~= 1; is_gpu = true; end  % calculation on gpu
-if exist('m_prop', 'var') ~= 1; m_prop = 'ASM'; end  % method propagation
-if exist('z', 'var') ~= 1; z = [0 0.01 0.02]; end % z-coordinates
+if ~exist('lambda', 'var'); lambda = 0.532e-6; end  % wavelength
+if ~exist('N', 'var'); N = 512; end % total area size
+if ~exist('pixel', 'var'); pixel = 4e-6; end % next pixel size
+if ~exist('spixel', 'var'); spixel = pixel; end % source pixel size
+if ~exist('is_max', 'var'); is_max = true; end  % find max or sum in MASKs
+if ~exist('is_gpu', 'var'); is_gpu = true; end  % calculation on gpu
+if ~exist('m_prop', 'var'); m_prop = 'ASM'; end  % method propagation
+if ~exist('z', 'var'); z = [0 0.01 0.02]; end % z-coordinates
 
 B = pixel*N/2; % half-size of the entire area
 k = 2*pi/lambda;

@@ -1,7 +1,7 @@
 % check result with offsets one DOE
 
-if exist('max_offsets', 'var') ~= 1; max_offsets = 2; end
-if exist('num_doe', 'var') ~= 1; num_doe = 1; end
+if ~exist('max_offsets', 'var'); max_offsets = 2; end
+if ~exist('num_doe', 'var'); num_doe = 1; end
 
 off_err_table = zeros(max_offsets*2+1);
 off_int_table = zeros(max_offsets*2+1);

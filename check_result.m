@@ -1,7 +1,7 @@
 
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
-if exist('max_batch', 'var') ~= 1; max_batch = 40; end
+if ~exist('max_batch', 'var'); max_batch = 40; end
 W = zeros(N,N,1,max_batch, 'single');
 GPU_CPU;
 

@@ -1,6 +1,6 @@
 
-if exist('Size', 'var') ~= 1; Size = 6; end
-if exist('delay', 'var') ~= 1; delay = 0.2; end
+if ~exist('Size', 'var'); Size = 6; end
+if ~exist('delay', 'var'); delay = 0.2; end
 
 % colormap in shades of Samara university
 ssau = [linspace(1,  32/255, 50), linspace( 32/255, 0, 100); ...

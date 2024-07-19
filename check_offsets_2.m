@@ -1,7 +1,7 @@
 % check avg accuracy and min_contrast for offsets several DOE
 
-if exist('max_offset', 'var') ~= 1; max_offset = 2; end
-if exist('max_check', 'var') ~= 1; max_check = 8; end
+if ~exist('max_offset', 'var'); max_offset = 2; end
+if ~exist('max_check', 'var'); max_check = 8; end
 
 % all posible offsets
 offsets = zeros((max_offset*2+1)^(2*size(DOES,3)),2*size(DOES,3));
