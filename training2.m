@@ -1,94 +1,122 @@
-% non-gradient learning method
+% gradient learning method
 
-if exist('P', 'var') ~= 1; P = size(Train,3); end
-if exist('epoch', 'var') ~= 1; epoch = 1; end
-if exist('batch', 'var') ~= 1; batch = 60; end
-if exist('LossFunc', 'var') ~= 1; LossFunc = 'SCE'; end
-if exist('cycle', 'var') ~= 1; cycle = 200; end
-if exist('sce_factor', 'var') ~= 1; sce_factor = 15; end
-if exist('deleted', 'var') ~= 1; deleted = true; end
-if exist('DOES_MASK', 'var') ~= 1; DOES_MASK = ones(N,N,length(Propagations), 'single'); end
-if exist('DOES', 'var') ~= 1; DOES = DOES_MASK; end
-if exist('target_scores', 'var') ~= 1; target_scores = eye(size(MASK,3),ln,'single'); end
+if ~exist('P', 'var'); P = size(Train,3); end
+if ~exist('epoch', 'var'); epoch = 1; end
+if ~exist('speed', 'var'); speed = 1e-1; end
+if ~exist('slowdown', 'var'); slowdown = 0.999; end
+if ~exist('batch', 'var'); batch = 20; end
+if ~exist('max_batch', 'var'); max_batch = batch; end
+if ~exist('method', 'var'); method = 'SGD'; end
+if ~exist('params', 'var'); params = []; end
+if ~exist('cycle', 'var'); cycle = 200; end
+if ~exist('deleted', 'var'); deleted = true; end
+if ~exist('DOES_MASK', 'var'); DOES_MASK = ones(N,N,length(Propagations),'single'); end
+if ~exist('DOES', 'var'); DOES = DOES_MASK; end
+if ~exist('MASK', 'var'); MASK = ones(size(Target)); end
+if ~exist('max_offsets', 'var'); max_offsets = 0; end
+if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
+if ~exist('tmp_data', 'var'); tmp_data =  zeros(N,N,size(DOES,3),'single'); end
+if ~exist('is_backup', 'var'); is_backup = false; end
+if ~exist('backup_time', 'var'); backup_time = 3600; end
 
-max_batch = 500;
+
 batch = min(batch, P);
-Accr = 0;
-accr_graph(1) = nan;
+DOES = single(DOES);
+DOES_MASK = single(DOES_MASK);
+loss_graph(1) = nan;
+gradient = zeros(size(DOES), 'single');
+tmp_data = single(tmp_data);
+W = zeros(N,N,length(Propagations)+1,min(batch, max_batch));
+F = zeros(N,N,length(Propagations)+1,min(batch, max_batch));
 
-% for Gauss Loss Function
-if strcmp(LossFunc, 'Target')
-    if exist('Target', 'var') ~= 1
-        Target = ((X - permute(coords(:,1), [3 2 1])).^2 + (Y - permute(coords(:,2), [3 2 1])).^2)/(spixel*7)^2;
-        Target = normalize_field(exp(-Target)).^2;
-    end
-    Target = single((permute(Target, [1 2 4 3])));
-end
+GPU_CPU;
 
 %% training
-tt2 = tic;
-for ep=1:epoch
-    randind = randperm(size(Train,3));
-    randind = randind(1:P);
-    for iter8=1:batch:P
-        min_phase = zeros(N,N,size(DOES,3), 'single');
-        for iter7=0:min(batch, max_batch):(batch-1)
-            num = TrainLabel(randind(iter8+iter7+(0:min(batch, max_batch)-1)))';
+tt1 = tic;
+tt_backup = tic;
+last_backup_time = toc(tt_backup);
+ndisp();
+if ~exist('ep', 'var'); ep = 1; end
+for ep=ep:epoch
+    if ~exist('randind', 'var')
+        randind = randperm(size(Train,3));
+        randind = randind(1:P);
+    end
+    if ~exist('iter7', 'var'); iter7 = 1-batch; end
+    for iter7=iter7+batch:batch:P
+        gradient(:) = 0;
+        loss = 0;
 
-            % direct propagation
-            W = GetImage(Train(:,:,randind(iter8+iter7+(0:min(batch, max_batch)-1))));
-            [me, W, mi] = recognize(W,Propagations,DOES,MASK,is_max);
-            I = sum(me);
-            Accr = Accr + sum(max(me) == me(num+(0:min(batch, max_batch)-1)*size(MASK,3)));
-            me = me./I;
-
-            % training
-            Wend = conj(W(:,:,end,:));
-            W(:,:,end,:) = [];
-            switch LossFunc
-                case 'Target' % the integral Target function
-                    F = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
-                case 'MSE' % mean squared error
-                    p = me;
-                    p = p - target_scores(:,num);
-                    p = 4*(p-sum(me.*p))./I;
-                    F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
-                case 'SCE' % softmax cross entropy
-                    p = exp(sce_factor*me); 
-                    p = p./sum(p);
-                    alpha = target_scores(:,num);
-                    p =  (p - sum(p.*me)).*sum(alpha) + sum(alpha.*me) - alpha;
-                    p = p*sce_factor*2./I;
-                    F = sum(Wend.*permute(p,[3 4 1 2]).*mi,3);
-                otherwise
-                    error(['Loss function "' name '" is not exist']);
+        % rand offsets
+        if max_offsets > 0
+            off = randi(3, size(DOES,3), 2)-2;
+            off = off*max_offsets;
+            for iter8 = 1:size(DOES,3)
+                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), off(iter8,:));
             end
-            % reverse propagation
-            F = reverse_propagation(F, Propagations, DOES);
-            min_phase = min_phase + sum(W.*F, 4);
         end
-        min_phase = pi - angle(min_phase);
+        
+        for iter9=0:min(batch, max_batch):(batch-1)
+            num = TrainLabel(randind(iter7+iter9+(0:min(batch, max_batch)-1)))';
+            
+            % direct propagation
+            W(:,:,1,:) = GetImage(Train(:,:,randind(iter7+iter9+(0:min(batch, max_batch)-1))));
+            for iter8=1:size(W,3)-1
+                W(:,:,iter8+1,:) = Propagations{iter8}(W(:,:,iter8,:).*DOES(:,:,iter8));
+            end
+
+            % error field
+            Wend = conj(W(:,:,end,:));
+            F(:,:,end,:) = 4*Wend.*MASK.*(abs(Wend).^2 - Target(:,:,1,num));
+            loss = loss + sum(MASK.*(abs(Wend).^2 - Target(:,:,1,num)).^2, "all");
+
+            % reverse propagation
+            for iter8=size(F,3)-1:-1:1
+                F(:,:,iter8,:) = Propagations{iter8}(F(:,:,iter8+1,:)).*DOES(:,:,iter8);
+            end
+            gradient = gradient - imag(sum(W(:,:,1:end-1,:).*F(:,:,1:end-1,:), 4));
+            
+            rdisp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
+                '; loss = ' num2str(loss) '; time = ' num2str(toc(tt1)) ';']);
+        end
+
+        % reverse offsets
+        if max_offsets > 0
+            for iter8 = 1:size(DOES,3)
+                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), -off(iter8,:));
+                gradient(:,:,iter8) = circshift(gradient(:,:,iter8), -off(iter8,:));
+            end
+        end
 
         % updating weights
-        DOES = exp(1i*min_phase);
+        iter_gradient = iter_gradient + 1;
+        [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, iter_gradient]);
+        DOES = DOES.*exp(-1i*speed*gradient);
+        speed = speed*slowdown;
+        
+        % backup
+        if is_backup && toc(tt_backup) - last_backup_time > backup_time
+            rdisp('backuping...');
+            save('training_backup');
+            last_backup_time = toc(tt_backup);
+        end
 
         % data output to the console
-        if mod(iter8+batch-1 + ep*P, cycle) == 0
-            Accr = Accr/max(cycle,batch)*100;
-            accr_graph(end+1) = Accr;
-            disp(['iter = ' num2str(iter8+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
-                '; accr = ' num2str(Accr) '%; time = ' num2str(toc(tt2)) ';']);
-            Accr = 0;
+        if mod(iter7+batch-1 + ep*P, cycle) == 0
+            loss_graph(end+1) = loss;
+            ndisp();
         end
     end
+    clearvars iter7 randind;
     DOES = DOES_MASK.*exp(1i*angle(DOES));
 end
 
 %% clearing unnecessary variables
-clearvars num iter7 iter8 ep me mi W Wend F Accr randind min_phase alpha p I max_batch tt2;
+
+clearvars num iter7 iter8 iter9 ep randind W Wend F loss gradient tt1 d tt_backup last_backup_time;
 if deleted == true
-    clearvars epoch P cycle Target batch LossFunc sce_factor DOES_MASK;
+    clearvars P epoch speed slowdown batch method params cycle deleted tmp_data ...
+        iter_gradient DOES_MASK max_offsets is_backup backup_time;
 else
     deleted = true;
-    Target = permute(Target, [1 2 4 3]);
 end

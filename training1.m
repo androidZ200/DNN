@@ -35,15 +35,6 @@ tmp_data = single(tmp_data);
 W = zeros(N,N,length(Propagations)+1,min(batch, max_batch));
 F = zeros(N,N,length(Propagations)+1,min(batch, max_batch));
 
-% for Gauss Loss Function
-if strcmp(LossFunc, 'Target')
-    if ~exist('Target', 'var')
-        Target = ((X - permute(coords(:,1), [3 2 1])).^2 + (Y - permute(coords(:,2), [3 2 1])).^2)/(spixel*7)^2;
-        Target = normalize_field(exp(-Target)).^2;
-    end
-    Target = single(permute(Target, [1 2 4 3]));
-end
-
 GPU_CPU;
 
 %% training
@@ -83,13 +74,13 @@ for ep=ep:epoch
             me = me./I;
             Accr = Accr + sum(max(me) == me(num+(0:min(batch, max_batch)-1)*size(MASK,3)));
             sortme = sort(me);
-            Aint = Aint + sum((sortme(end,:)-sortme(end-1,:))./(sortme(end,:)+sortme(end-1,:)));
-            
+            if(size(me,1)>1)
+                Aint = Aint + sum((sortme(end,:)-sortme(end-1,:))./(sortme(end,:)+sortme(end-1,:)));
+            end
+
             % training
             Wend = conj(W(:,:,end,:));
             switch LossFunc
-                case 'Target' % the integral Target function
-                    F(:,:,end,:) = 4*Wend.*(abs(Wend).^2 - Target(:,:,1,num));
                 case 'Sosh'
                     p = me >= me(num+(0:min(batch, max_batch)-1)*size(MASK,3));
                     p = -(sum(me.*p)./sum(p) - me).*p;
@@ -121,7 +112,10 @@ for ep=ep:epoch
                 F(:,:,iter8,:) = Propagations{iter8}(F(:,:,iter8+1,:)).*DOES(:,:,iter8);
             end
             gradient = gradient - imag(sum(W(:,:,1:end-1,:).*F(:,:,1:end-1,:), 4));
-            rdisp(['training ' num2str(mod((iter7+iter9+ep*P-1),cycle)/cycle*100,'%.2f') '%']);
+
+            rdisp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
+                '; accr = ' num2str(Accr/mod((iter7+iter9+ep*P-1),cycle)*100) ...
+                '%; time = ' num2str(toc(tt1)) ';']);
         end
 
         % reverse offsets
@@ -151,9 +145,6 @@ for ep=ep:epoch
             Aint = Aint/max(cycle,batch)*100;
             accr_graph(end+1) = Accr;
             aint_graph(end+1) = Aint;
-
-            rdisp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
-                '; accr = ' num2str(Accr) '%; time = ' num2str(toc(tt1)) ';']);
             ndisp();
             Accr = 0;
             Aint = 0;
@@ -165,13 +156,11 @@ end
 
 %% clearing unnecessary variables
 
-clearvars num iter8 iter9 ep me mi W Wend F sortme Accr Aint gradient p I alpha tt1 d tt_backup last_backup_time;
+clearvars num iter7 iter8 iter9 ep randind me mi W Wend F sortme Accr Aint gradient p I alpha tt1 d ...
+    tt_backup last_backup_time;
 if deleted == true
-    clearvars P epoch speed slowdown batch LossFunc method params cycle deleted Target tmp_data ...
+    clearvars P epoch speed slowdown batch LossFunc method params cycle deleted tmp_data ...
         sce_factor target_scores iter_gradient DOES_MASK max_offsets sosh_factor is_backup backup_time;
 else
     deleted = true;
-    if strcmp(LossFunc, 'Target')
-        Target = permute(Target, [1 2 4 3]);
-    end
 end
