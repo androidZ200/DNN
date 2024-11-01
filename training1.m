@@ -13,14 +13,14 @@ if ~exist('cycle', 'var'); cycle = 200; end
 if ~exist('deleted', 'var'); deleted = true; end
 if ~exist('DOES_MASK', 'var'); DOES_MASK = ones(N,N,length(Propagations),'single'); end
 if ~exist('DOES', 'var'); DOES = DOES_MASK; end
-if ~exist('sce_factor', 'var'); sce_factor = 80; end
-if ~exist('sosh_factor', 'var'); sosh_factor = 10; end
+if ~exist('sce_factor', 'var') && strcmp(LossFunc, 'SCE'); sce_factor = 80; end
+if ~exist('sosh_factor', 'var') && strcmp(LossFunc, 'Sosh'); sosh_factor = 10; end
 if ~exist('target_scores', 'var'); target_scores = eye(size(MASK,3),ln,'single'); end
 if ~exist('max_offsets', 'var'); max_offsets = 0; end
 if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
 if ~exist('tmp_data', 'var'); tmp_data =  zeros(N,N,size(DOES,3),'single'); end
 if ~exist('is_backup', 'var'); is_backup = false; end
-if ~exist('backup_time', 'var'); backup_time = 3600; end
+if ~exist('backup_time', 'var') && is_backup; backup_time = 3600; end
 
 
 batch = min(batch, P);
@@ -113,8 +113,8 @@ for ep=ep:epoch
             end
             gradient = gradient - imag(sum(W(:,:,1:end-1,:).*F(:,:,1:end-1,:), 4));
 
-            rdisp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
-                '; accr = ' num2str(Accr/mod((iter7+iter9+ep*P-1),cycle)*100) ...
+            rdisp(['iter = ' num2str(iter7+iter9+batch-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
+                num2str(Accr/(mod(iter7+iter9+min(batch, max_batch)+ep*P-2,cycle)+1)*100) ...
                 '%; time = ' num2str(toc(tt1)) ';']);
         end
 

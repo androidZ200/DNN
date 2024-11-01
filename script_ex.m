@@ -9,11 +9,11 @@ lambda = 632.8e-9;
 N = 512;
 is_max = true;
 z = [0 0.01 0.02];
-m_prop = 'fft';
+m_prop = 'sinc';
 init;
 
-aa = 0.6e-3;
-hh = 0.4e-3;
+Full_width  = 0.6e-3;
+Full_height = 0.4e-3;
 G_size_x = 50e-6;
 G_size_y = G_size_x;
 mnist_digits;
@@ -22,7 +22,7 @@ mnist_digits;
 
 epoch = 4;
 batch = 20;
-cycle = 1500;
+cycle = 2000;
 speed = 0.3;
 slowdown = 0.9995;
 LossFunc = 'SCE';
@@ -45,8 +45,8 @@ spixel = 36e-6;
 is_max = true;
 init;
 
-aa = 5e-3;
-hh = 4e-3;
+Full_width  = 5e-3;
+Full_height = 4e-3;
 G_size_x = 1e-3;
 G_size_y = 1e-3;
 mnist_digits;
@@ -58,7 +58,7 @@ DOES = exp(2i*pi*(rand(N,N,length(Propagations))-0.5)/10);
 
 epoch = 4;
 batch = 20;
-cycle = 1500;
+cycle = 2000;
 speed = 0.3;
 slowdown = 0.9995;
 LossFunc = 'SCE';
@@ -77,6 +77,8 @@ pixel = 4e-6*512/N;
 spixel = 8e-6;
 lambda = 632.8e-9;
 is_max = true;
+Full_width  = 0.6e-3;
+Full_height = 0.4e-3;
 G_size_x = 0.05e-3;
 G_size_y = 0.05e-3;
 z = [0 0.01 0.02];
@@ -95,9 +97,6 @@ params = [0.9 0.999 1e-8];
 N = N*2;
 pixel = pixel/2;
 init;
-
-aa = 0.6e-3;
-hh = 0.4e-3;
 mnist_digits;
 
 DOES = kron(DOES, ones(2));
