@@ -15,7 +15,7 @@ if ~exist('DOES', 'var'); DOES = DOES_MASK; end
 if ~exist('MASK', 'var'); MASK = ones(size(Target)); end
 if ~exist('max_offsets', 'var'); max_offsets = 0; end
 if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
-if ~exist('tmp_data', 'var'); tmp_data =  zeros(N,N,size(DOES,3),'single'); end
+if ~exist('tmp_data', 'var'); tmp_data =  zeros(size(DOES),'single'); end
 if ~exist('is_backup', 'var'); is_backup = false; end
 if ~exist('backup_time', 'var'); backup_time = 3600; end
 
@@ -26,8 +26,8 @@ DOES_MASK = single(DOES_MASK);
 loss_graph(1) = nan;
 gradient = zeros(size(DOES), 'single');
 tmp_data = single(tmp_data);
-W = zeros(N,N,length(Propagations)+1,min(batch, max_batch));
-F = zeros(N,N,length(Propagations)+1,min(batch, max_batch));
+W = zeros(size(DOES,1),size(DOES,2),length(Propagations)+1,min(batch, max_batch));
+F = zeros(size(DOES,1),size(DOES,2),length(Propagations)+1,min(batch, max_batch));
 
 GPU_CPU;
 

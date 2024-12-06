@@ -5,7 +5,6 @@ if ~exist('max_batch', 'var'); max_batch = 40; end
 W = zeros(N,N,1,max_batch, 'single');
 GPU_CPU;
 
-ttcr = tic;
 ndisp('check result 0%');
 for iter3=1:size(Test,3)/max_batch
     % running through the system
@@ -32,7 +31,7 @@ int_tabl = sum(int_tabl,3);
 % accuracy info
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl))*100;
 int_tabl = int_tabl./sum(int_tabl)*100;
-rdisp(['accuracy = ' num2str(accuracy) '%; time ' num2str(toc(ttcr))]);
+rdisp(['accuracy = ' num2str(accuracy) '%;']);
 % min contrast info
 T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
@@ -43,7 +42,7 @@ if ~is_max
     ndisp(['avg energy = ' num2str(avg_energy*100) '%']);
 end
 
-clearvars argmax W iter3 iter4 num T max_batch ttcr;
+clearvars argmax W iter3 iter4 num T max_batch;
 return
 
 

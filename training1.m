@@ -18,7 +18,7 @@ if ~exist('sosh_factor', 'var') && strcmp(LossFunc, 'Sosh'); sosh_factor = 10; e
 if ~exist('target_scores', 'var'); target_scores = eye(size(MASK,3),ln,'single'); end
 if ~exist('max_offsets', 'var'); max_offsets = 0; end
 if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
-if ~exist('tmp_data', 'var'); tmp_data =  zeros(N,N,size(DOES,3),'single'); end
+if ~exist('tmp_data', 'var'); tmp_data =  zeros(size(DOES),'single'); end
 if ~exist('is_backup', 'var'); is_backup = false; end
 if ~exist('backup_time', 'var') && is_backup; backup_time = 3600; end
 
@@ -32,8 +32,8 @@ DOES = single(DOES);
 DOES_MASK = single(DOES_MASK);
 gradient = zeros(size(DOES), 'single');
 tmp_data = single(tmp_data);
-W = zeros(N,N,length(Propagations)+1,min(batch, max_batch));
-F = zeros(N,N,length(Propagations)+1,min(batch, max_batch));
+W = zeros(size(DOES,1),size(DOES,2),length(Propagations)+1,min(batch, max_batch));
+F = zeros(size(DOES,1),size(DOES,2),length(Propagations)+1,min(batch, max_batch));
 
 GPU_CPU;
 
@@ -113,7 +113,7 @@ for ep=ep:epoch
             end
             gradient = gradient - imag(sum(W(:,:,1:end-1,:).*F(:,:,1:end-1,:), 4));
 
-            rdisp(['iter = ' num2str(iter7+iter9+batch-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
+            rdisp(['iter = ' num2str(iter7+iter9+min(batch, max_batch)-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
                 num2str(Accr/(mod(iter7+iter9+min(batch, max_batch)+ep*P-2,cycle)+1)*100) ...
                 '%; time = ' num2str(toc(tt1)) ';']);
         end
