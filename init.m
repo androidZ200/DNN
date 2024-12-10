@@ -1,30 +1,67 @@
 % setting the system parameters
 
 if ~exist('lambda', 'var'); lambda = 0.532e-6; end  % wavelength
-if ~exist('N', 'var'); N = 512; end % total area size
-if ~exist('pixel', 'var'); pixel = 4e-6; end % next pixel size
-if ~exist('spixel', 'var'); spixel = pixel; end % source pixel size
 if ~exist('is_max', 'var'); is_max = true; end  % find max or sum in MASKs
 if ~exist('is_gpu', 'var'); is_gpu = true; end  % calculation on gpu
-
-B = pixel*N/2; % half-size of the entire area
 k = 2*pi/lambda;
-% coordinates of grid nodes
-x = single(linspace(-B, B, N+1)); x(end) = []; x = x + B/N;
-[X, Y] = meshgrid(x, x);
 
-GPU_CPU;
+if exist('f', 'var')
+    switch m_prop
 
-if exist('z', 'var')
-    if ~exist('m_prop', 'var'); m_prop = 'ASM'; end  % method propagation
+        case 'ASM'
+            X{1} = single(linspace(-pixel*N/2, pixel*N/2, N+1)); X{1}(end) = []; X{1} = X{1} + pixel/2;
+            Y{1} = X{1}';
 
-    % matrixes propagations
-    U = matrix_propagation(X,Y,permute(z(2:end)-z(1:end-1),[1 3 2]),k,m_prop);
-    % functions propagation
-    GetImage = @(W)propagation(normalize_field(resizeimage(W,N,spixel,pixel)), U(:,:,1), m_prop);
-    Propagations = [];
-    for iter99=2:size(U,3)
-        Propagations{end+1} = @(W)propagation(W, U(:,:,iter99), m_prop);
+            U = matrix_propagation_asm(pixel,N,permute(f,[1 3 2]),k);
+            U = squeeze(num2cell(U, [1 2]));
+            GetImage = @(W)propagation_asm(normalize_field(resizeimage(W,N,spixel,pixel)), U{1});
+            FPropagations = [];
+            for iter99=2:length(U)
+                FPropagations{end+1} = @(W)propagation_asm(W, U{iter99});
+            end
+            BPropagations = FPropagations;
+
+        case 'sinc'
+            if size(pixel,1) == 1; pixel = repmat(pixel, [length(f)+1, 1]); end
+            if size(pixel,2) == 1; pixel = repmat(pixel, [1, 2]); end
+            if size(N,1) == 1; N = repmat(N, [length(f)+1, 1]); end
+            if size(N,2) == 1; N = repmat(N, [1, 2]); end
+
+            for iter99=1:length(f)+1
+                X{iter99} = single(linspace(-pixel(iter99,1)*N(iter99,1)/2, pixel(iter99,1)*N(iter99,1)/2, N(iter99,1)+1)); 
+                X{iter99}(end) = []; X{iter99} = X{iter99} + pixel(iter99,1)/2;
+                Y{iter99} = single(linspace(-pixel(iter99,2)*N(iter99,2)/2, pixel(iter99,2)*N(iter99,2)/2, N(iter99,2)+1)'); 
+                Y{iter99}(end) = []; Y{iter99} = Y{iter99} + pixel(iter99,2)/2;
+            end
+
+            for iter99=1:length(f)
+                U{iter99}(:,:,1) = matrix_propagation_sinc(X{iter99},X{iter99+1},f(iter99),k);
+                if pixel(iter99,1) ~= pixel(iter99,2) || pixel(iter99+1,1) ~= pixel(iter99+1,2) || ...
+                        N(iter99,1) ~= N(iter99,2) || N(iter99+1,1) ~= N(iter99+1,2)
+                    U{iter99}(:,:,2) = matrix_propagation_sinc(Y{iter99},Y{iter99+1},f(iter99),k).';
+                end
+            end
+
+            GetImage = @(W)propagation_sinc(normalize_field(W), U{1});
+            FPropagations = [];
+            for iter99=2:length(U)
+                FPropagations{end+1} = @(W)propagation_sinc(W, U{iter99});
+            end
+
+            for iter99=1:length(f)
+                BU{iter99}(:,:,1) = matrix_propagation_sinc(X{iter99+1},X{iter99},f(iter99),k);
+                if pixel(iter99,1) ~= pixel(iter99,2) || pixel(iter99+1,1) ~= pixel(iter99+1,2) || ...
+                        N(iter99,1) ~= N(iter99,2) || N(iter99+1,1) ~= N(iter99+1,2)
+                    BU{iter99}(:,:,2) = matrix_propagation_sinc(Y{iter99+1},Y{iter99},f(iter99),k).';
+                end
+            end
+            BPropagations = [];
+            for iter99=2:length(U)
+                BPropagations{end+1} = @(W)propagation_sinc(W, BU{iter99});
+            end
+
+        otherwise
+            error('m_prop can be ether ASM or sinc');
     end
 end
 
