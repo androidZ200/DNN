@@ -1,8 +1,8 @@
-function Out = propagation_sinc(Field, U)
+function Out = propagation_sinc(Field, U1, U2)
     % the function of radiation propagation
-    if (size(U,3) == 1)
-        Out = pagemtimes(U, pagemtimes(Field, U.'));
+    if (nargin == 2)
+        Out = pagemtimes(U1, pagemtimes(Field, U1.'));
     else
-        Out = pagemtimes(U(:,:,1), pagemtimes(Field, U(:,:,2)));
+        Out = pagemtimes(U1, pagemtimes(Field, U2));
     end
 end
