@@ -21,7 +21,7 @@ loss_graph(1) = nan;
 max_batch = min(batch, max_batch);
 
 for iter8=1:length(FPropagations)
-    if ~exist('tmp_data', 'var') || length(tmp_data) < iter8; tmp_data{iter8} =  zeros(size(DOES{iter8}),'single'); end
+    if ~exist('tmp_data', 'var') || length(tmp_data) < iter8; tmp_data{iter8,1} =  zeros(size(DOES{iter8}),'single'); end
     zero_grad{iter8,1} = zeros(size(DOES{iter8}),'single');
     W{iter8,1} = zeros([N(iter8,:),batch],'single');
     F{iter8,1} = zeros([N(iter8,:),batch],'single');

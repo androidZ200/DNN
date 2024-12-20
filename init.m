@@ -62,10 +62,10 @@ if exist('f', 'var')
     end
 
     if ~exist('DOES_MASK', 'var')    
-         for iter99=1:length(f); DOES_MASK{iter99} = ones(N(iter99,:),'single')'; end
+         for iter99=1:length(f); DOES_MASK{iter99,1} = ones(N(iter99,:),'single')'; end
     end
     if ~exist('DOES', 'var')
-        for iter99=1:length(f); DOES{iter99} = DOES_MASK{iter99}; end
+        for iter99=1:length(f); DOES{iter99,1} = DOES_MASK{iter99}; end
     end
 end
 
