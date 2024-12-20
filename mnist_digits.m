@@ -36,7 +36,7 @@ if exist('coords', 'var') ~= 1
               -1.5*aa  hh; -0.5*aa  hh; 0.5*aa  hh; 1.5*aa  hh];
 end
 
-MASK = single((abs(X - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
-              (abs(Y - permute(coords(:,2), [3 2 1])) < G_size_y/2));
+MASK = single((abs(X{end} - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
+              (abs(Y{end} - permute(coords(:,2), [3 2 1])) < G_size_y/2));
 
 clearvars ind aa hh iter99 nums tmp_label;

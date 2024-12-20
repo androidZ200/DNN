@@ -18,12 +18,13 @@ if ~exist('backup_time', 'var'); backup_time = 3600; end
 
 batch = min(batch, P);
 loss_graph(1) = nan;
+max_batch = min(batch, max_batch);
 
-for iter7=1:length(FPropagations)
-    if ~exist('tmp_data', 'var') || length(tmp_data) < iter7; tmp_data{iter7} =  zeros(size(DOES{iter7}),'single'); end
-    zero_grad{iter7} = zeros(size(DOES{iter7}),'single');
-    W{iter7} = zeros([N(iter7,:),batch],'single');
-    F{iter7} = zeros([N(iter7,:),batch],'single');
+for iter8=1:length(FPropagations)
+    if ~exist('tmp_data', 'var') || length(tmp_data) < iter8; tmp_data{iter8} =  zeros(size(DOES{iter8}),'single'); end
+    zero_grad{iter8,1} = zeros(size(DOES{iter8}),'single');
+    W{iter8,1} = zeros([N(iter8,:),batch],'single');
+    F{iter8,1} = zeros([N(iter8,:),batch],'single');
 end
 W{length(FPropagations)+1} = zeros([N(end,:),batch],'single');
 F{length(FPropagations)+1} = zeros([N(end,:),batch],'single');
@@ -55,11 +56,11 @@ for ep=ep:epoch
             end
         end
         
-        for iter9=0:min(batch, max_batch):(batch-1)
-            num = TrainLabel(randind(iter7+iter9+(0:min(batch, max_batch)-1)))';
+        for iter9=0:max_batch:(batch-1)
+            num = TrainLabel(randind(iter7+iter9+(0:max_batch-1)))';
             
             % direct propagation
-            W{1} = GetImage(Train(:,:,randind(iter7+iter9+(0:min(batch, max_batch)-1))));
+            W{1} = GetImage(Train(:,:,randind(iter7+iter9+(0:max_batch-1))));
             for iter8=1:length(W)-1
                 W{iter8+1} = FPropagations{iter8}(W{iter8}.*DOES{iter8});
             end
@@ -75,7 +76,7 @@ for ep=ep:epoch
             end
             gradient = cellfun(@(gr,w,f)gr-imag(sum(w.*f,3)), gradient,W(1:end-1),F(1:end-1),'UniformOutput',false);
             
-            rdisp(['iter = ' num2str(iter7+batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
+            rdisp(['iter = ' num2str(iter7+iter9+max_batch-1 + (ep-1)*P) '/' num2str(P*epoch) ...
                 '; loss = ' num2str(loss) '; time = ' num2str(toc(tt1)) ';']);
         end
 
@@ -101,7 +102,7 @@ for ep=ep:epoch
         end
 
         % data output to the console
-        if mod(iter7+batch-1 + ep*P, cycle) == 0
+        if mod(iter7+batch-1 + (ep-1)*P, cycle) == 0
             loss_graph(end+1) = loss;
             ndisp();
         end
