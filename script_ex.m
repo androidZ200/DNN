@@ -160,6 +160,31 @@ method = 'Adam';
 params = [0.9 0.999 1e-8];
 training2;
 
+%% 1-dimension image generation
+
+clear variables;
+
+lambda = 532e-9;
+f = 0.2;
+N = [5000 1];
+pixel = [2e-6; 2*tand(5)*f(1)/N(end,1)];
+m_prop = 'sinc';
+init;
+
+Train = normalize_field(abs(X{1}) < 5e-3);
+TrainLabel = 1;
+Target = atan(X{2}*5e2)+pi/2;
+Target = Target - min(Target);
+Target = Target/sum(Target);
+
+epoch = 100000;
+cycle = 1000;
+speed = 1e-2;
+slowdown = 0.99995;
+method = 'Adam';
+params = [0.9 0.999 1e-8];
+training2;
+
 %% phase function doe
 
 ssau = [linspace(40,  32, 40), linspace( 32,  255, 40), linspace(255, 201, 40), linspace(201, 40, 40);...
@@ -178,6 +203,7 @@ end
 clearvars ssau iter;
 
 %% outputs regions
+
 xx = [-1 -1 1 1 -1]*G_size_x/2;
 yy = [1 -1 -1 1 1]*G_size_y/2;
 
