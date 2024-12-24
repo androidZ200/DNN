@@ -96,8 +96,7 @@ DOES = squeeze(num2cell(DOES,[1 2]));
 DOES_MASK = squeeze(num2cell(DOES_MASK,[1 2]));
 tmp_data = squeeze(num2cell(tmp_data,[1 2]));
 
-epoch = 5;
-cycle = 1500;
+cycle = 2000;
 speed = 0.3;
 slowdown = 0.9995;
 LossFunc = 'SCE';
@@ -131,7 +130,7 @@ clear variables;
 pixel = 18e-6;
 N = 512;
 B = pixel*N/2;
-f = [0.15 0.15];
+f = [0.15 0.15 0.15];
 m_prop = 'ASM';
 init;
 
@@ -145,10 +144,10 @@ Train = normalize_field(Train);
 TrainLabel = [1; 2; 3; 4];
 Test = Train;
 
-Target(:,:,1,1) = ((X{end}.^2 + Y{end}.^2) < (B/4)^2).*((X{end}.^2 + Y{end}.^2) > (B/4.4)^2);
-Target(:,:,1,2) = (max(abs(X{end}), abs(Y{end})) < B/4).*(max(abs(X{end}), abs(Y{end})) > B/4.4);
-Target(:,:,1,3) = (max(abs(X{end}), abs(Y{end})) < B/4).*(min(abs(X{end}), abs(Y{end})) < B*0.05/4.4);
-Target(:,:,1,4) = (max(abs(X{end}), abs(Y{end})) < B/4).*(abs(abs(X{end}) - abs(Y{end})) <  B*0.07/4.4);
+Target(:,:,1) = ((X{end}.^2 + Y{end}.^2) < (B/4)^2).*((X{end}.^2 + Y{end}.^2) > (B/4.4)^2);
+Target(:,:,2) = (max(abs(X{end}), abs(Y{end})) < B/4).*(max(abs(X{end}), abs(Y{end})) > B/4.4);
+Target(:,:,3) = (max(abs(X{end}), abs(Y{end})) < B/4).*(min(abs(X{end}), abs(Y{end})) < B*0.05/4.4);
+Target(:,:,4) = (max(abs(X{end}), abs(Y{end})) < B/4).*(abs(abs(X{end}) - abs(Y{end})) <  B*0.07/4.4);
 Target = (normalize_field(Target)).^2;
 
 epoch = 8000;
@@ -159,6 +158,14 @@ slowdown = 0.9992;
 method = 'Adam';
 params = [0.9 0.999 1e-8];
 training2;
+
+for iter=1:size(Train,3)
+    W = GetImage(Train(:,:,iter));
+    for iter8=1:length(DOES)
+        W = FPropagations{iter8}(W.*DOES{iter8});
+    end
+    figure; imagesc(abs(W).^2);
+end
 
 %% 1-dimension image generation
 

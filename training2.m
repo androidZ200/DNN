@@ -20,16 +20,10 @@ batch = min(batch, P);
 loss_graph(1) = nan;
 max_batch = min(batch, max_batch);
 
-for iter8=1:length(FPropagations)
-    if ~exist('tmp_data', 'var') || length(tmp_data) < iter8; tmp_data{iter8,1} =  zeros(size(DOES{iter8}),'single'); end
-    zero_grad{iter8,1} = zeros(size(DOES{iter8}),'single');
-    W{iter8,1} = zeros([N(iter8,:),batch],'single');
-    F{iter8,1} = zeros([N(iter8,:),batch],'single');
-end
-W{length(FPropagations)+1} = zeros([N(end,:),batch],'single');
-F{length(FPropagations)+1} = zeros([N(end,:),batch],'single');
-
-% GPU_CPU;
+if ~exist('tmp_data', 'var'); tmp_data = create_cells(N(1:end-1,:),'zeros',is_gpu); end
+zero_grad = create_cells(N(1:end-1,:),'zeros',is_gpu);
+W = create_cells(N,'zeros',is_gpu);
+F = create_cells(N,'zeros',is_gpu);
 
 %% training
 tt1 = tic;

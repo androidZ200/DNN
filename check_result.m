@@ -2,10 +2,7 @@
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if ~exist('max_batch', 'var'); max_batch = 40; end
-for iter3=1:length(FPropagations)
-    W{iter3} = zeros([N(iter3,:),max_batch],'single');
-end
-W{length(FPropagations)+1} = zeros([N(end,:),max_batch],'single');
+W = create_cells(N,'zeros',is_gpu);
 
 ndisp('check result 0%');
 for iter3=1:size(Test,3)/max_batch

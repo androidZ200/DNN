@@ -15,8 +15,10 @@ if exist('f', 'var')
     for iter99=1:length(f)+1
         X{iter99} = single(linspace(-pixel(iter99,1)*N(iter99,1)/2, pixel(iter99,1)*N(iter99,1)/2, N(iter99,1)+1)); 
         X{iter99}(end) = []; X{iter99} = X{iter99} + pixel(iter99,1)/2;
+        if is_gpu; X{iter99} = gpuArray(X{iter99}); end
         Y{iter99} = single(linspace(-pixel(iter99,2)*N(iter99,2)/2, pixel(iter99,2)*N(iter99,2)/2, N(iter99,2)+1)'); 
         Y{iter99}(end) = []; Y{iter99} = Y{iter99} + pixel(iter99,2)/2;
+        if is_gpu; Y{iter99} = gpuArray(Y{iter99}); end
     end
 
     if exist('m_prop', 'var')
@@ -24,6 +26,7 @@ if exist('f', 'var')
             
             case 'ASM'
                 U = matrix_propagation_asm(pixel(1,1),N(1,1),permute(f,[1 3 2]),k);
+                if is_gpu; U = gpuArray(U); end
                 U = squeeze(num2cell(U, [1 2]));
                 FPropagations = [];
                 for iter99=1:length(U)
@@ -62,10 +65,10 @@ if exist('f', 'var')
     end
 
     if ~exist('DOES_MASK', 'var')    
-         for iter99=1:length(f); DOES_MASK{iter99,1} = ones(N(iter99,:),'single')'; end
+        DOES_MASK = create_cells(N(1:end-1,:),'ones',is_gpu);
     end
     if ~exist('DOES', 'var')
-        for iter99=1:length(f); DOES{iter99,1} = DOES_MASK{iter99}; end
+        DOES = DOES_MASK;
     end
 end
 
