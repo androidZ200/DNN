@@ -4,13 +4,15 @@ if ~exist('P', 'var'); P = size(Train,3); end
 if ~exist('epoch', 'var'); epoch = 1; end
 if ~exist('speed', 'var'); speed = 1e-1; end
 if ~exist('slowdown', 'var'); slowdown = 0.999; end
-if ~exist('batch', 'var'); batch = 20; end
+if ~exist('batch', 'var'); batch = P; end
 if ~exist('max_batch', 'var'); max_batch = batch; end
 if ~exist('method', 'var'); method = 'SGD'; end
 if ~exist('params', 'var'); params = []; end
+if ~exist('LossFunc', 'var'); LossFunc = 'MSE'; end
+if ~exist('sce_factor', 'var') && strcmp(LossFunc, 'SCE'); sce_factor = 500; end
 if ~exist('cycle', 'var'); cycle = 200; end
 if ~exist('deleted', 'var'); deleted = true; end
-if ~exist('MASK', 'var'); MASK = ones(size(Target),'single'); end
+if ~exist('MASK', 'var'); MASK = ones(1,1,size(Train,3)); end
 if ~exist('max_offsets', 'var'); max_offsets = 0; end
 if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
 if ~exist('is_backup', 'var'); is_backup = false; end
@@ -51,7 +53,7 @@ for ep=ep:epoch
         end
         
         for iter9=0:max_batch:(batch-1)
-            num = TrainLabel(randind(iter7+iter9+(0:max_batch-1)))';
+            num = reshape(TrainLabel(randind(iter7+iter9+(0:max_batch-1))),1,[]);
             
             % direct propagation
             W{1} = GetImage(Train(:,:,randind(iter7+iter9+(0:max_batch-1))));
@@ -60,9 +62,15 @@ for ep=ep:epoch
             end
 
             % error field
-            Wend = conj(W{end});
-            F{end} = 4*Wend.*MASK.*(abs(Wend).^2 - Target(:,:,num));
-            loss = loss + sum(MASK.*(abs(Wend).^2 - Target(:,:,num)).^2, "all");
+            switch LossFunc
+                case 'MSE'
+                    loss = loss + sum(MASK(:,:,num).*(abs(W{end}).^2 - Target(:,:,num)).^2, "all");
+                    F{end} = 4*conj(W{end}).*MASK(:,:,num).*(abs(W{end}).^2 - Target(:,:,num));
+                case 'SCE'
+                    p = exp(sce_factor*abs(W{end}).^2); p = p./sum(sum(p));
+                    loss = loss - sum(Target(:,:,num).*log(p), "all");
+                    F{end} = 2*sce_factor.*conj(W{end}).*(sum(sum(Target(:,:,num))).*p - Target(:,:,num));
+            end
 
             % reverse propagation
             for iter8=length(F)-1:-1:1
