@@ -12,9 +12,7 @@ f = [0.01 0.01];
 m_prop = 'sinc';
 init;
 
-X_imag = linspace(-spixel*14, spixel*14, 29); X_imag(end) = []; X_imag = X_imag + spixel/2;
-UU = matrix_propagation_sinc(X_imag,X{1}, 0.01, k);
-GetImage = @(W)propagation_sinc(normalize_field(W),UU);
+GetImage = create_GetImage_sinc(spixel,28,X{1},Y{1},k,0.01);
 
 Full_width  = 0.6e-3;
 Full_height = 0.4e-3;

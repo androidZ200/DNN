@@ -3,6 +3,7 @@ TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if ~exist('max_batch', 'var'); max_batch = 40; end
 W = create_cells(N,'zeros',is_gpu);
+max_batch = min(size(Test,3), max_batch);
 
 ndisp('check result 0%');
 for iter3=1:size(Test,3)/max_batch
@@ -18,12 +19,12 @@ end
 % error table
 [~, argmax] = max(TestScores);
 err_tabl = zeros(size(MASK,3), ln, size(Test,3), 'single');
-err_tabl(argmax + size(MASK,3)*(TestLabel'-1) + (size(MASK,3))*ln*(0:(size(Test,3)-1))) = 1;
+err_tabl(argmax + size(MASK,3)*(reshape(TestLabel,1,[])-1) + size(MASK,3)*ln*(0:(size(Test,3)-1))) = 1;
 err_tabl = sum(err_tabl,3);
 
 % intensity table
 int_tabl = zeros(size(MASK,3), ln*size(Test,3), 'single');
-int_tabl(:, TestLabel'+(0:(size(Test,3)-1))*ln) = TestScores./sum(TestScores);
+int_tabl(:, reshape(TestLabel,1,[])+(0:(size(Test,3)-1))*ln) = TestScores./sum(TestScores);
 int_tabl = reshape(int_tabl, size(MASK,3), ln, []);
 int_tabl = sum(int_tabl,3);
 %%

@@ -54,7 +54,7 @@ for ep=ep:epoch
         end
         
         for iter9=0:max_batch:(batch-1)
-            num = TrainLabel(randind(iter7+iter9+(0:max_batch-1)))';
+            num = reshape(TrainLabel(randind(iter7+iter9+(0:max_batch-1))),1,[]);
             
             % direct propagation
             W{1} = GetImage(Train(:,:,randind(iter7+iter9+(0:max_batch-1))));
@@ -99,7 +99,7 @@ for ep=ep:epoch
             gradient = cellfun(@(gr,w,f)gr-imag(sum(w.*f,3)), gradient,W(1:end-1),F(1:end-1),'UniformOutput',false);
 
             rdisp(['iter = ' num2str(iter7+iter9+max_batch-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
-                num2str(Accr/(mod(iter7+iter9+max_batch+ep*P-2,cycle)+1)*100) ...
+                num2str(Accr/(mod(iter7+iter9+max_batch+(ep-1)*P-2,cycle)+1)*100) ...
                 '%; time = ' num2str(toc(tt1)) ';']);
         end
 
