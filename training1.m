@@ -11,31 +11,23 @@ if ~exist('method', 'var'); method = 'SGD'; end
 if ~exist('params', 'var'); params = []; end
 if ~exist('cycle', 'var'); cycle = 200; end
 if ~exist('deleted', 'var'); deleted = true; end
-if ~exist('DOES_MASK', 'var'); DOES_MASK = ones(N,N,length(Propagations),'single'); end
-if ~exist('DOES', 'var'); DOES = DOES_MASK; end
 if ~exist('sce_factor', 'var') && strcmp(LossFunc, 'SCE'); sce_factor = 80; end
 if ~exist('sosh_factor', 'var') && strcmp(LossFunc, 'Sosh'); sosh_factor = 10; end
 if ~exist('target_scores', 'var'); target_scores = eye(size(MASK,3),ln,'single'); end
 if ~exist('max_offsets', 'var'); max_offsets = 0; end
 if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
-if ~exist('tmp_data', 'var'); tmp_data =  zeros(size(DOES),'single'); end
 if ~exist('is_backup', 'var'); is_backup = false; end
 if ~exist('backup_time', 'var') && is_backup; backup_time = 3600; end
-
+if ~exist('Accr', 'var'); Accr = 0; end
 
 batch = min(batch, P);
-if ~exist('Accr', 'var'); Accr = 0; end
-if ~exist('Aint', 'var'); Aint = 0; end
 accr_graph(1) = nan;
-aint_graph(1) = nan;
-DOES = single(DOES);
-DOES_MASK = single(DOES_MASK);
-gradient = zeros(size(DOES), 'single');
-tmp_data = single(tmp_data);
-W = zeros(size(DOES,1),size(DOES,2),length(Propagations)+1,min(batch, max_batch));
-F = zeros(size(DOES,1),size(DOES,2),length(Propagations)+1,min(batch, max_batch));
+max_batch = min(batch, max_batch);
 
-GPU_CPU;
+if ~exist('tmp_data', 'var'); tmp_data = create_cells(N(1:end-1,:),'zeros',is_gpu); end
+zero_grad = create_cells(N(1:end-1,:),'zeros',is_gpu);
+W = create_cells(N,'zeros',is_gpu);
+F = create_cells(N,'zeros',is_gpu);
 
 %% training
 tt1 = tic;
@@ -50,86 +42,79 @@ for ep=ep:epoch
     end
     if ~exist('iter7', 'var'); iter7 = 1-batch; end
     for iter7=iter7+batch:batch:P
-        gradient(:) = 0;
+        gradient = zero_grad;
 
         % rand offsets
         if max_offsets > 0
-            off = randi(3, size(DOES,3), 2)-2;
+            off = randi(3, length(DOES), 2)-2;
             off = off*max_offsets;
             for iter8 = 1:size(DOES,3)
-                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), off(iter8,:));
+                DOES{iter8} = circshift(DOES{iter8}, off(iter8,:));
             end
         end
         
-        for iter9=0:min(batch, max_batch):(batch-1)
-            num = TrainLabel(randind(iter7+iter9+(0:min(batch, max_batch)-1)))';
+        for iter9=0:max_batch:(batch-1)
+            num = reshape(TrainLabel(randind(iter7+iter9+(0:max_batch-1))),1,[]);
             
             % direct propagation
-            W(:,:,1,:) = GetImage(Train(:,:,randind(iter7+iter9+(0:min(batch, max_batch)-1))));
-            for iter8=1:size(W,3)-1
-                W(:,:,iter8+1,:) = Propagations{iter8}(W(:,:,iter8,:).*DOES(:,:,iter8));
+            W{1} = GetImage(Train(:,:,randind(iter7+iter9+(0:max_batch-1))));
+            for iter8=1:length(W)-1
+                W{iter8+1} = FPropagations{iter8}(W{iter8}.*DOES{iter8});
             end
-            [me, mi] = get_scores(W(:,:,end,:), MASK, is_max);
+            [me, mi] = get_scores(permute(W{end},[1 2 4 3]), MASK, is_max);
             I = sum(me);
             me = me./I;
-            Accr = Accr + sum(max(me) == me(num+(0:min(batch, max_batch)-1)*size(MASK,3)));
-            sortme = sort(me);
-            if(size(me,1)>1)
-                Aint = Aint + sum((sortme(end,:)-sortme(end-1,:))./(sortme(end,:)+sortme(end-1,:)));
-            end
+            Accr = Accr + sum(max(me) == me(num+(0:max_batch-1)*size(MASK,3)));
 
             % training
-            Wend = conj(W(:,:,end,:));
+            Wend = conj(W{end});
             switch LossFunc
                 case 'Sosh'
-                    p = me >= me(num+(0:min(batch, max_batch)-1)*size(MASK,3));
+                    p = me >= me(num+(0:max_batch-1)*size(MASK,3));
                     p = -(sum(me.*p)./sum(p) - me).*p;
                     d = sqrt(sum(p.^2));
                     p = p./d.*exp(-d*sosh_factor); p(isnan(p)) = 0;
                     p = 2*(p-sum(me.*p))./I;
-                    F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
                 case 'MSE' % mean squared error
                     p = me - target_scores(:,num);
                     p = 4*(p-sum(me.*p))./I;
-                    F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
                 case 'MAE' % mean absolute error
                     p = me - target_scores(:,num);
                     p = p ./ abs(p); p(isnan(p)) = 0;
                     p = 2*(p-sum(me.*p))./I;
-                    F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
                 case 'SCE' % softmax cross entropy
                     p = exp(sce_factor*me); 
                     p = p./sum(p);
                     alpha = target_scores(:,num);
                     p = (p-sum(p.*me)).*sum(alpha) + sum(alpha.*me) - alpha;
                     p = p*sce_factor*2./I;
-                    F(:,:,end,:) = Wend.*sum(permute(p,[3 4 1 2]).*mi,3);
                 otherwise
                     error(['Loss function "' name '" is not exist']);
             end
+            F{end} = Wend.*permute(sum(permute(p,[3 4 1 2]).*mi,3),[1 2 4 3]);
             % reverse propagation
-            for iter8=size(F,3)-1:-1:1
-                F(:,:,iter8,:) = Propagations{iter8}(F(:,:,iter8+1,:)).*DOES(:,:,iter8);
+            for iter8=length(F)-1:-1:1
+                F{iter8} = BPropagations{iter8}(F{iter8+1}).*DOES{iter8};
             end
-            gradient = gradient - imag(sum(W(:,:,1:end-1,:).*F(:,:,1:end-1,:), 4));
+            gradient = cellfun(@(gr,w,f)gr-imag(sum(w.*f,3)), gradient,W(1:end-1),F(1:end-1),'UniformOutput',false);
 
-            rdisp(['iter = ' num2str(iter7+iter9+min(batch, max_batch)-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
-                num2str(Accr/(mod(iter7+iter9+min(batch, max_batch)+ep*P-2,cycle)+1)*100) ...
+            rdisp(['iter = ' num2str(iter7+iter9+max_batch-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
+                num2str(Accr/(mod(iter7+iter9+max_batch+(ep-1)*P-2,cycle)+1)*100) ...
                 '%; time = ' num2str(toc(tt1)) ';']);
         end
 
         % reverse offsets
         if max_offsets > 0
-            for iter8 = 1:size(DOES,3)
-                DOES(:,:,iter8) = circshift(DOES(:,:,iter8), -off(iter8,:));
-                gradient(:,:,iter8) = circshift(gradient(:,:,iter8), -off(iter8,:));
+            for iter8 = 1:length(DOES)
+                DOES{iter8} = circshift(DOES{iter8}, -off(iter8,:));
+                gradient{iter8} = circshift(gradient{iter8}, -off(iter8,:));
             end
         end
 
         % updating weights
         iter_gradient = iter_gradient + 1;
         [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, iter_gradient]);
-        DOES = DOES.*exp(-1i*speed*gradient);
+        DOES = cellfun(@(DOES,gradient)DOES.*exp(-1i*speed*gradient), DOES,gradient,'UniformOutput',false);
         speed = speed*slowdown;
         
         % backup
@@ -140,27 +125,24 @@ for ep=ep:epoch
         end
 
         % data output to the console
-        if mod(iter7+batch-1 + ep*P, cycle) == 0
+        if mod(iter7+batch-1 + (ep-1)*P, cycle) == 0
             Accr = Accr/max(cycle,batch)*100;
-            Aint = Aint/max(cycle,batch)*100;
             accr_graph(end+1) = Accr;
-            aint_graph(end+1) = Aint;
-            ndisp();
             Accr = 0;
-            Aint = 0;
+            ndisp();
         end
     end
     clearvars iter7 randind;
-    DOES = DOES_MASK.*exp(1i*angle(DOES));
+    DOES = cellfun(@(DM,D)DM.*exp(1i*angle(D)), DOES_MASK,DOES,'UniformOutput',false);
 end
 
 %% clearing unnecessary variables
 
-clearvars num iter7 iter8 iter9 ep randind me mi W Wend F sortme Accr Aint gradient p I alpha tt1 d ...
+clearvars num iter7 iter8 iter9 ep randind me mi W Wend F Accr gradient p I alpha tt1 d ...
     tt_backup last_backup_time;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle deleted tmp_data ...
-        sce_factor target_scores iter_gradient DOES_MASK max_offsets sosh_factor is_backup backup_time;
+        sce_factor target_scores iter_gradient max_offsets sosh_factor is_backup backup_time;
 else
     deleted = true;
 end

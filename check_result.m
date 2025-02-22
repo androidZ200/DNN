@@ -2,29 +2,29 @@
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 
 if ~exist('max_batch', 'var'); max_batch = 40; end
-W = zeros(N,N,1,max_batch, 'single');
-GPU_CPU;
+W = create_cells(N,'zeros',is_gpu);
+max_batch = min(size(Test,3), max_batch);
 
 ndisp('check result 0%');
 for iter3=1:size(Test,3)/max_batch
     % running through the system
-    W(:,:,1,:) = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
-    for iter4=1:size(DOES,3)
-        W = Propagations{iter4}(W.*DOES(:,:,iter4));
+    W{1} = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
+    for iter4=1:length(DOES)
+        W{iter4+1} = FPropagations{iter4}(W{iter4}.*DOES{iter4});
     end
-    TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(W, MASK, is_max);
+    TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(permute(W{end},[1 2 4 3]), MASK, is_max);
     rdisp(['check result ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%']);
 end
 %%
 % error table
 [~, argmax] = max(TestScores);
 err_tabl = zeros(size(MASK,3), ln, size(Test,3), 'single');
-err_tabl(argmax + size(MASK,3)*(TestLabel'-1) + (size(MASK,3))*ln*(0:(size(Test,3)-1))) = 1;
+err_tabl(argmax + size(MASK,3)*(reshape(TestLabel,1,[])-1) + size(MASK,3)*ln*(0:(size(Test,3)-1))) = 1;
 err_tabl = sum(err_tabl,3);
 
 % intensity table
 int_tabl = zeros(size(MASK,3), ln*size(Test,3), 'single');
-int_tabl(:, TestLabel'+(0:(size(Test,3)-1))*ln) = TestScores./sum(TestScores);
+int_tabl(:, reshape(TestLabel,1,[])+(0:(size(Test,3)-1))*ln) = TestScores./sum(TestScores);
 int_tabl = reshape(int_tabl, size(MASK,3), ln, []);
 int_tabl = sum(int_tabl,3);
 %%
