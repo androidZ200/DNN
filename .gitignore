@@ -1,6 +1,13 @@
 *.mat
 *.asv
 *.fig
+*.bmp
+*.png
+*.jpg
+*.jpeg
+
 data/*
 !./_Fresnel_data_.mat
-script[0-9].m
+
+script[0-9]*.m
+!script*[^0-9]*.m
