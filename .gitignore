@@ -9,6 +9,7 @@
 data/*
 !./_Fresnel_data_.mat
 !datasets/**
+datasets/catvsdog/CvD.mat
 
 script[0-9]*.m
 !script*[^0-9]*.m
