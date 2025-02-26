@@ -1,4 +1,5 @@
 % setting the system parameters
+addpath(genpath(pwd));
 
 if ~exist('lambda', 'var'); lambda = 0.532e-6; end  % wavelength
 if ~exist('is_max', 'var'); is_max = true; end  % find max or sum in MASKs
