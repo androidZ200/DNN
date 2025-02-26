@@ -8,6 +8,7 @@
 
 data/*
 !./_Fresnel_data_.mat
+!datasets/**
 
 script[0-9]*.m
 !script*[^0-9]*.m

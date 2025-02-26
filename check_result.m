@@ -50,7 +50,8 @@ return
 % output of a beautiful error table
 grad = 100;
 figure;
-imagesc(0:(ln-1),0:(size(MASK,3)-1), bsxfun(@rdivide, err_tabl, sum(err_tabl)));
+imagesc(bsxfun(@rdivide, err_tabl, sum(err_tabl)));
+xlabel('input class'); ylabel('recognized class'); xticklabels(Labels); yticklabels(Labels);
 colormap([linspace(1, 32/255, grad)', linspace(1, 145/255, grad)', linspace(1, 201/255, grad)']);
 for ii = 1:ln
     for jj = 1:size(MASK,3)
@@ -58,7 +59,7 @@ for ii = 1:ln
         if err_tabl(jj, ii)/sum(err_tabl(:, ii)) > 0.5
             color = [1 1 1];
         end
-        text(ii-1, jj-1, sprintf('%.1f', err_tabl(jj, ii)/sum(err_tabl(:, ii))*100), 'fontsize', 14, 'color', color, ...
+        text(ii, jj, sprintf('%.1f', err_tabl(jj, ii)/sum(err_tabl(:, ii))*100), 'fontsize', 14, 'color', color, ...
             'HorizontalAlignment', 'center');
     end
 end
@@ -72,12 +73,13 @@ return;
 % output of a beautiful intensity table
 grad = 100;
 figure;
-imagesc(0:(ln-1),0:(size(MASK,3)-1), int_tabl);
+imagesc(int_tabl);
+xlabel('input class'); ylabel('recognized class'); xticklabels(Labels); yticklabels(Labels);
 colormap([linspace(1, 201/255, grad)', linspace(1, 88/255, grad)', linspace(1, 32/255, grad)']);
 for ii = 1:ln
     for jj = 1:size(MASK,3)
         color = [0 0 0];
-        text(ii-1, jj-1, sprintf('%.1f', int_tabl(jj, ii)), 'fontsize', 14, ...
+        text(ii, jj, sprintf('%.1f', int_tabl(jj, ii)), 'fontsize', 14, ...
             'color', color, 'HorizontalAlignment', 'center');
     end
 end
