@@ -19,6 +19,7 @@ if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
 if ~exist('is_backup', 'var'); is_backup = false; end
 if ~exist('backup_time', 'var') && is_backup; backup_time = 3600; end
 if ~exist('Accr', 'var'); Accr = 0; end
+if ~exist('cAccr', 'var'); cAccr = 0; end
 
 batch = min(batch, P);
 accr_graph(1) = nan;
@@ -54,23 +55,25 @@ for ep=ep:epoch
         end
         
         for iter9=0:max_batch:(batch-1)
-            num = reshape(TrainLabel(randind(iter7+iter9+(0:max_batch-1))),1,[]);
+            index = randind(iter7+iter9+(0:min(max_batch-1, P-iter7-iter9)));
+            num = reshape(TrainLabel(index),1,[]);
             
             % direct propagation
-            W{1} = GetImage(Train(:,:,randind(iter7+iter9+(0:max_batch-1))));
+            W{1} = GetImage(Train(:,:,index));
             for iter8=1:length(W)-1
                 W{iter8+1} = FPropagations{iter8}(W{iter8}.*DOES{iter8});
             end
             [me, mi] = get_scores(permute(W{end},[1 2 4 3]), MASK, is_max);
             I = sum(me);
             me = me./I;
-            Accr = Accr + sum(max(me) == me(num+(0:max_batch-1)*size(MASK,3)));
+            Accr = Accr + sum(max(me) == me(num+(0:min(max_batch-1, P-iter7-iter9))*size(MASK,3)));
+            cAccr = cAccr + min(max_batch, P-iter7-iter9+1);
 
             % training
             Wend = conj(W{end});
             switch LossFunc
                 case 'Sosh'
-                    p = me >= me(num+(0:max_batch-1)*size(MASK,3));
+                    p = me >= me(num+(0:min(max_batch-1, P-iter7-iter9))*size(MASK,3));
                     p = -(sum(me.*p)./sum(p) - me).*p;
                     d = sqrt(sum(p.^2));
                     p = p./d.*exp(-d*sosh_factor); p(isnan(p)) = 0;
@@ -99,7 +102,7 @@ for ep=ep:epoch
             gradient = cellfun(@(gr,w,f)gr-imag(sum(w.*f,3)), gradient,W(1:end-1),F(1:end-1),'UniformOutput',false);
 
             rdisp(['iter = ' num2str(iter7+iter9+max_batch-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
-                num2str(Accr/(mod(iter7+iter9+max_batch+(ep-1)*P-2,cycle)+1)*100) ...
+                num2str(Accr/cAccr*100) ...
                 '%; time = ' num2str(toc(tt1)) ';']);
         end
 
@@ -126,9 +129,9 @@ for ep=ep:epoch
 
         % data output to the console
         if mod(iter7+batch-1 + (ep-1)*P, cycle) == 0
-            Accr = Accr/max(cycle,batch)*100;
+            Accr = Accr/cAccr*100;
             accr_graph(end+1) = Accr;
-            Accr = 0;
+            Accr = 0; cAccr = 0;
             ndisp();
         end
     end
@@ -138,8 +141,8 @@ end
 
 %% clearing unnecessary variables
 
-clearvars num iter7 iter8 iter9 ep randind me mi W Wend F Accr gradient p I alpha tt1 d ...
-    tt_backup last_backup_time;
+clearvars num iter7 iter8 iter9 ep randind me mi W Wend F Accr cAccr gradient p I alpha tt1 ...
+    d tt_backup last_backup_time index;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle deleted tmp_data ...
         sce_factor target_scores iter_gradient max_offsets sosh_factor is_backup backup_time;

@@ -51,7 +51,9 @@ return
 grad = 100;
 figure;
 imagesc(bsxfun(@rdivide, err_tabl, sum(err_tabl)));
-xlabel('input class'); ylabel('recognized class'); xticklabels(Labels); yticklabels(Labels);
+xlabel('input class'); ylabel('recognized class');
+xticks(1:ln); yticks(1:size(MASK,3));
+xticklabels(Labels); yticklabels(Labels);
 colormap([linspace(1, 32/255, grad)', linspace(1, 145/255, grad)', linspace(1, 201/255, grad)']);
 for ii = 1:ln
     for jj = 1:size(MASK,3)
@@ -74,7 +76,9 @@ return;
 grad = 100;
 figure;
 imagesc(int_tabl);
-xlabel('input class'); ylabel('recognized class'); xticklabels(Labels); yticklabels(Labels);
+xlabel('input class'); ylabel('recognized class');
+xticks(1:ln); yticks(1:size(MASK,3));
+xticklabels(Labels); yticklabels(Labels);
 colormap([linspace(1, 201/255, grad)', linspace(1, 88/255, grad)', linspace(1, 32/255, grad)']);
 for ii = 1:ln
     for jj = 1:size(MASK,3)
