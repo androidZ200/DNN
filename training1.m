@@ -13,6 +13,7 @@ if ~exist('cycle', 'var'); cycle = 200; end
 if ~exist('deleted', 'var'); deleted = true; end
 if ~exist('sce_factor', 'var') && strcmp(LossFunc, 'SCE'); sce_factor = 80; end
 if ~exist('sosh_factor', 'var') && strcmp(LossFunc, 'Sosh'); sosh_factor = 10; end
+if ~exist('joint_factor', 'var'); joint_factor = 0; end
 if ~exist('target_scores', 'var'); target_scores = eye(size(MASK,3),ln,'single'); end
 if ~exist('max_offsets', 'var'); max_offsets = 0; end
 if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
@@ -95,6 +96,10 @@ for ep=ep:epoch
                     error(['Loss function "' name '" is not exist']);
             end
             F{end} = Wend.*permute(sum(permute(p,[3 4 1 2]).*mi,3),[1 2 4 3]);
+            if joint_factor > 0
+                F{end} = (1-joint_factor)*F{end} - 2*joint_factor./permute(I, [1 3 2]).*Wend.*sum(MASK,3);
+            end
+
             % reverse propagation
             for iter8=length(F)-1:-1:1
                 F{iter8} = BPropagations{iter8}(F{iter8+1}).*DOES{iter8};
@@ -145,7 +150,7 @@ clearvars num iter7 iter8 iter9 ep randind me mi W Wend F Accr cAccr gradient p 
     d tt_backup last_backup_time index;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle deleted tmp_data ...
-        sce_factor target_scores iter_gradient max_offsets sosh_factor is_backup backup_time;
+        sce_factor joint_factor target_scores iter_gradient max_offsets sosh_factor is_backup backup_time;
 else
     deleted = true;
 end

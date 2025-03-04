@@ -4,6 +4,7 @@ TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 if ~exist('max_batch', 'var'); max_batch = 40; end
 W = create_cells(N,'zeros',is_gpu);
 max_batch = min(size(Test,3), max_batch);
+total_enegry = 0;
 
 ndisp('check result 0%');
 for iter3=1:size(Test,3)/max_batch
@@ -12,6 +13,7 @@ for iter3=1:size(Test,3)/max_batch
     for iter4=1:length(DOES)
         W{iter4+1} = FPropagations{iter4}(W{iter4}.*DOES{iter4});
     end
+    total_enegry = total_enegry + sum(abs(W{end}).^2.*sum(MASK,3), 'all');
     TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(permute(W{end},[1 2 4 3]), MASK, is_max);
     rdisp(['check result ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%']);
 end
@@ -37,10 +39,8 @@ T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
 ndisp(['min contrast = ' num2str(min_contrast) '%;']);
 % effectiveness info
-if ~is_max
-    avg_energy = sum(sum(TestScores(1:ln,:)))/size(Test,3);
-    ndisp(['avg energy = ' num2str(avg_energy*100) '%']);
-end
+total_enegry = total_enegry/size(Test,3);
+ndisp(['total energy = ' num2str(total_enegry*100) '%']);
 
 clearvars argmax W iter3 iter4 num T max_batch;
 return
