@@ -22,6 +22,7 @@ if ~exist('backup_time', 'var') && is_backup; backup_time = 3600; end
 if ~exist('Accr', 'var'); Accr = 0; end
 if ~exist('cAccr', 'var'); cAccr = 0; end
 
+if disp_info >= 2; ndisp('start training1'); end
 batch = min(batch, P);
 accr_graph(1) = nan;
 max_batch = min(batch, max_batch);
@@ -35,7 +36,7 @@ F = create_cells(N,'zeros',is_gpu);
 tt1 = tic;
 tt_backup = tic;
 last_backup_time = toc(tt_backup);
-ndisp();
+if disp_info >= 1; ndisp(); end
 if ~exist('ep', 'var'); ep = 1; end
 for ep=ep:epoch
     if ~exist('randind', 'var')
@@ -106,9 +107,11 @@ for ep=ep:epoch
             end
             gradient = cellfun(@(gr,w,f)gr-imag(sum(w.*f,3)), gradient,W(1:end-1),F(1:end-1),'UniformOutput',false);
 
-            rdisp(['iter = ' num2str(iter7+iter9+max_batch-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
-                num2str(Accr/cAccr*100) ...
-                '%; time = ' num2str(toc(tt1)) ';']);
+            if disp_info >= 1
+                rdisp(['iter = ' num2str(iter7+iter9+max_batch-1 + (ep-1)*P) '/' num2str(P*epoch) '; accr = ' ...
+                    num2str(Accr/cAccr*100) ...
+                    '%; time = ' num2str(toc(tt1)) ';']);
+            end
         end
 
         % reverse offsets
@@ -127,7 +130,7 @@ for ep=ep:epoch
         
         % backup
         if is_backup && toc(tt_backup) - last_backup_time > backup_time
-            rdisp('backuping...');
+            if disp_info >= 2; rdisp('backuping...'); end
             save('training_backup');
             last_backup_time = toc(tt_backup);
         end
@@ -143,6 +146,7 @@ for ep=ep:epoch
     clearvars iter7 randind;
     DOES = cellfun(@(DM,D)DM.*exp(1i*angle(D)), DOES_MASK,DOES,'UniformOutput',false);
 end
+if disp_info >= 2; ndisp('training1 finished'); end
 
 %% clearing unnecessary variables
 

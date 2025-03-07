@@ -51,7 +51,8 @@ for num=1:ln
         
         % drawing bar of scores
         subplot(1, 3, 3);
-        bar(0:ln-1, tmp*100,'FaceColor',[32 145 201]/255,'EdgeAlpha',0);
+        bar(tmp*100,'FaceColor',[32 145 201]/255,'EdgeAlpha',0);
+        xticklabels(Labels);
         ylim([0 60]);
         
 		pause(delay);
