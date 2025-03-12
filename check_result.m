@@ -25,10 +25,8 @@ err_tabl(argmax + size(MASK,3)*(reshape(TestLabel,1,[])-1) + size(MASK,3)*ln*(0:
 err_tabl = sum(err_tabl,3);
 
 % intensity table
-int_tabl = zeros(size(MASK,3), ln*size(Test,3), 'single');
-int_tabl(:, reshape(TestLabel,1,[])+(0:(size(Test,3)-1))*ln) = TestScores./sum(TestScores);
-int_tabl = reshape(int_tabl, size(MASK,3), ln, []);
-int_tabl = sum(int_tabl,3);
+onehot = reshape(TestLabel,1,[]) == (1:ln)';
+int_tabl = (TestScores./sum(TestScores)) * onehot';
 %%
 % accuracy info
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl))*100;
@@ -42,7 +40,7 @@ if disp_info >= 1; ndisp(['min contrast = ' num2str(min_contrast) '%;']); end
 total_enegry = total_enegry/size(Test,3);
 if disp_info >= 1; ndisp(['total energy = ' num2str(total_enegry*100) '%']); end
 
-clearvars argmax W iter3 iter4 num T max_batch;
+clearvars argmax W iter3 iter4 num T max_batch onehot;
 return
 
 
@@ -93,3 +91,14 @@ title(['min contrast = ' num2str(min_contrast) '%;']);
 ndisp(['min contrast = ' num2str(min_contrast) '%;']);
 clearvars ii jj grad T color;
 return;
+
+%% contrast hist
+% output contrast histogramm
+T = sort(TestScores);
+Contrasts = (T(end,:)-T(end-1,:))./(T(end,:)+T(end-1,:))*100;
+figure;
+hist(Contrasts, 50); colormap([32 145 201]/255);
+title('Contrast distribution');
+xlim([0 max(Contrasts)*1.05]);
+xlabel('contrast, %'); ylabel('count');
+clearvars T;
