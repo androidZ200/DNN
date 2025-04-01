@@ -73,10 +73,10 @@ if exist('f', 'var')
 
     if disp_info >= 2; rdisp('creating DOES'); end
     if ~exist('DOES_MASK', 'var')    
-        DOES_MASK = create_cells(N(1:end-1,:),'ones',is_gpu);
+        GRAD_MASK = create_cells(N(1:end-1,:),'ones',is_gpu);
     end
     if ~exist('DOES', 'var')
-        DOES = DOES_MASK;
+        DOES = GRAD_MASK;
     end
 end
 if disp_info >= 2; rdisp('init finished'); end

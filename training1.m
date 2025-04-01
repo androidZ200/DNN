@@ -32,6 +32,11 @@ zero_grad = create_cells(N(1:end-1,:),'zeros',is_gpu);
 W = create_cells(N,'zeros',is_gpu);
 F = create_cells(N,'zeros',is_gpu);
 
+for iter=1:length(F)
+    deep_grad = iter;
+    if sum(sum(GRAD_MASK{iter})) > 0; break; end
+end
+
 %% training
 tt1 = tic;
 tt_backup = tic;
@@ -102,7 +107,7 @@ for ep=ep:epoch
             end
 
             % reverse propagation
-            for iter8=length(F)-1:-1:1
+            for iter8=length(F)-1:-1:deep_grad
                 F{iter8} = BPropagations{iter8}(F{iter8+1}).*DOES{iter8};
             end
             gradient = cellfun(@(gr,w,f)gr-imag(sum(w.*f,3)), gradient,W(1:end-1),F(1:end-1),'UniformOutput',false);
@@ -125,7 +130,8 @@ for ep=ep:epoch
         % updating weights
         iter_gradient = iter_gradient + 1;
         [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, iter_gradient]);
-        DOES = cellfun(@(DOES,gradient)DOES.*exp(-1i*speed*gradient), DOES,gradient,'UniformOutput',false);
+        DOES = cellfun(@(DOES,gradient,GRAD_MASK)DOES.*exp(-1i*speed*gradient.*GRAD_MASK), ...
+            DOES,gradient,GRAD_MASK,'UniformOutput',false);
         speed = speed*slowdown;
         
         % backup
@@ -144,14 +150,13 @@ for ep=ep:epoch
         end
     end
     clearvars iter7 randind;
-    DOES = cellfun(@(DM,D)DM.*exp(1i*angle(D)), DOES_MASK,DOES,'UniformOutput',false);
 end
 if disp_info >= 2; ndisp('training1 finished'); end
 
 %% clearing unnecessary variables
 
 clearvars num iter7 iter8 iter9 ep randind me mi W Wend F Accr cAccr gradient p I alpha tt1 ...
-    d tt_backup last_backup_time index;
+    d tt_backup last_backup_time index deep_grad;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle deleted tmp_data ...
         sce_factor joint_factor target_scores iter_gradient max_offsets sosh_factor is_backup backup_time;
