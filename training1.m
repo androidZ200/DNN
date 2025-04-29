@@ -156,7 +156,7 @@ if disp_info >= 2; ndisp('training1 finished'); end
 %% clearing unnecessary variables
 
 clearvars num iter7 iter8 iter9 ep randind me mi W Wend F Accr cAccr gradient p I alpha tt1 ...
-    d tt_backup last_backup_time index deep_grad;
+    d tt_backup last_backup_time index zero_grad deep_grad;
 if deleted == true
     clearvars P epoch speed slowdown batch LossFunc method params cycle deleted tmp_data ...
         sce_factor joint_factor target_scores iter_gradient max_offsets sosh_factor is_backup backup_time;

@@ -96,7 +96,8 @@ for ep=ep:epoch
         % updating weights
         iter_gradient = iter_gradient + 1;
         [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, iter_gradient]);
-        DOES = cellfun(@(DOES,gradient)DOES.*exp(-1i*speed*gradient), DOES,gradient,'UniformOutput',false);
+        DOES = cellfun(@(DOES,gradient,GRAD_MASK)DOES.*exp(-1i*speed*gradient.*GRAD_MASK), ...
+            DOES,gradient,GRAD_MASK,'UniformOutput',false);
         speed = speed*slowdown;
         
         % backup
@@ -113,7 +114,6 @@ for ep=ep:epoch
         end
     end
     clearvars iter7 randind;
-    DOES = cellfun(@(DM,D)DM.*exp(1i*angle(D)), DOES_MASK,DOES,'UniformOutput',false);
 end
 if disp_info >= 2; ndisp('training2 finished'); end
 
