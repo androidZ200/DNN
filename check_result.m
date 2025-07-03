@@ -6,6 +6,7 @@ W = create_cells(N,'zeros',is_gpu);
 max_batch = min(size(Test,3), max_batch);
 total_enegry = 0;
 
+ttcr = tic();
 if disp_info >= 1; ndisp('check result 0%'); end
 for iter3=1:size(Test,3)/max_batch
     % running through the system
@@ -17,6 +18,7 @@ for iter3=1:size(Test,3)/max_batch
     TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(permute(W{end},[1 2 4 3]), MASK, is_max);
     if disp_info >= 1; rdisp(['check result ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%']); end
 end
+rdisp(['check result takes time: ' num2str(toc(ttcr)) 's']);
 %%
 % error table
 [~, argmax] = max(TestScores);
@@ -31,7 +33,7 @@ int_tabl = (TestScores./sum(TestScores)) * onehot';
 % accuracy info
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl))*100;
 int_tabl = int_tabl./sum(int_tabl)*100;
-if disp_info >= 1; rdisp(['accuracy = ' num2str(accuracy) '%;']); end
+if disp_info >= 1; ndisp(['accuracy = ' num2str(accuracy) '%;']); end
 % min contrast info
 T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
@@ -40,7 +42,7 @@ if disp_info >= 1; ndisp(['min contrast = ' num2str(min_contrast) '%;']); end
 total_enegry = total_enegry/size(Test,3);
 if disp_info >= 1; ndisp(['total energy = ' num2str(total_enegry*100) '%']); end
 
-clearvars argmax W iter3 iter4 num T max_batch onehot;
+clearvars argmax W iter3 iter4 num T max_batch onehot ttcr;
 return
 
 

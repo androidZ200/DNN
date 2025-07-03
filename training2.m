@@ -122,7 +122,7 @@ if disp_info >= 2; ndisp('training2 finished'); end
 clearvars num iter7 iter8 iter9 ep randind W Wend F loss gradient tt1 d tt_backup last_backup_time zero_grad;
 if deleted == true
     clearvars P epoch speed slowdown batch method params cycle deleted tmp_data ...
-        iter_gradient max_offsets is_backup backup_time;
+        iter_gradient max_offsets is_backup backup_time LossFunc;
 else
     deleted = true;
 end
