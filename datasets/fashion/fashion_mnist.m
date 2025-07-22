@@ -21,6 +21,6 @@ end
 if disp_info >= 2; rdisp('creating masks'); end
 MASK = single((abs(X{end} - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
               (abs(Y{end} - permute(coords(:,2), [3 2 1])) < G_size_y/2));
-if disp_info >= 2; rdisp('load mnist finished'); end
+if disp_info >= 2; rdisp('load fashion mnist finished'); end
 
 clearvars aa hh;

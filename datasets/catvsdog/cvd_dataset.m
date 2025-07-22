@@ -12,29 +12,11 @@ ln = length(Labels);
 % Standart size images
 if disp_info >= 2; rdisp('resizing cat dataset'); end
 for iter = 1:length(cat)
-    scx = size(cat{iter},2)/Width_image;
-    scy = size(cat{iter},1)/Height_image;
-    sc = max(scx, scy);
-    imag = im2gray(cat{iter});
-    if sc > 1
-        imag = imresize(imag,1/sc);
-    end
-    cat{iter} = zeros(Width_image, Height_image, 'single');
-    cat{iter}(floor(end/2-size(imag,1)/2)+1:floor(end/2+size(imag,1)/2),...
-              floor(end/2-size(imag,2)/2)+1:floor(end/2+size(imag,2)/2)) = imag;
+    cat{iter} = resize_img(cat{iter}, Width_image, Height_image);
 end
 if disp_info >= 2; rdisp('resizing dog dataset'); end
 for iter = 1:length(dog)
-    scx = size(dog{iter},2)/Width_image;
-    scy = size(dog{iter},1)/Height_image;
-    sc = max(scx, scy);
-    imag = im2gray(dog{iter});
-    if sc > 1
-        imag = imresize(imag,1/sc);
-    end
-    dog{iter} = zeros(Width_image, Height_image, 'single');
-    dog{iter}(floor(end/2-size(imag,1)/2)+1:floor(end/2+size(imag,1)/2),...
-              floor(end/2-size(imag,2)/2)+1:floor(end/2+size(imag,2)/2)) = imag;
+    dog{iter} = resize_img(dog{iter}, Width_image, Height_image);
 end
 
 % Create test set
@@ -66,3 +48,18 @@ MASK = single((abs(X{end} - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
 if disp_info >= 2; rdisp('load cat vs dog finished'); end
 
 clearvars Testsize catid dogid cat dog imag scx scy sc iter;
+
+%%
+
+function img = resize_img(img, Width_image, Height_image)
+    scx = size(img,2)/Width_image;
+    scy = size(img,1)/Height_image;
+    sc = max(scx, scy);
+    imag = im2gray(img);
+    if sc > 1
+        imag = imresize(imag,1/sc);
+    end
+    img = zeros(Width_image, Height_image, 'single');
+    img(floor(end/2-size(imag,1)/2)+1:floor(end/2+size(imag,1)/2),...
+              floor(end/2-size(imag,2)/2)+1:floor(end/2+size(imag,2)/2)) = imag;
+end
