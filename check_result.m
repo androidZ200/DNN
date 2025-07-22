@@ -5,9 +5,10 @@ if ~exist('max_batch', 'var'); max_batch = 40; end
 W = create_cells(N,'zeros',is_gpu);
 max_batch = min(size(Test,3), max_batch);
 total_enegry = 0;
+additionalinfo = '';
 
 ttcr = tic();
-if disp_info >= 1; ndisp('check result 0%'); end
+if disp_info >= 1; ndisp(['check result\n' waitbartext(60, -1) ' 0%']); end
 for iter3=1:size(Test,3)/max_batch
     % running through the system
     W{1} = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
@@ -16,7 +17,14 @@ for iter3=1:size(Test,3)/max_batch
     end
     total_enegry = total_enegry + sum(abs(W{end}).^2.*sum(MASK,3), 'all');
     TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(permute(W{end},[1 2 4 3]), MASK, is_max);
-    if disp_info >= 1; rdisp(['check result ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%']); end
+    
+    if disp_info >= 2
+        [~, argmax] = max(TestScores(:,1:iter3*max_batch));
+        additionalinfo = ['\nwaiting time ' num2str(toc(ttcr)*(size(Test,3)/max_batch/iter3 - 1), '%.2f') ...
+            's\ncurrent accuracy ' num2str(mean(argmax' == TestLabel(1:iter3*max_batch))*100, '%.2f') '%'];
+    end
+    if disp_info >= 1; rdisp(['check result\n' waitbartext(60, iter3/size(Test,3)*max_batch) ...
+            ' ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%' additionalinfo]); end
 end
 rdisp(['check result takes time: ' num2str(toc(ttcr)) 's']);
 %%
