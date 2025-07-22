@@ -14,11 +14,12 @@ init;
 
 GetImage = create_GetImage_sinc(spixel,28,X{1},Y{1},k,0.01);
 
+mnist_digits;
 Full_width  = 0.6e-3;
 Full_height = 0.4e-3;
 G_size_x = 50e-6;
 G_size_y = G_size_x;
-mnist_digits;
+mask10_1;
 % MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
 
 
@@ -47,11 +48,12 @@ spixel = 36e-6;
 is_max = true;
 init;
 
+mnist_digits;
 Full_width  = 5e-3;
 Full_height = 4e-3;
 G_size_x = 1e-3;
 G_size_y = 1e-3;
-mnist_digits;
+mask10_1;
 
 GetImage = @(W)fft2(normalize_field(resizeimage(W,N(1,1),spixel,pixel(1,1))));
 FPropagations = { @(W)fft2(W)/N(1,1) };
@@ -81,6 +83,7 @@ spixel = 8e-6;
 Old_x = linspace(-spixel*14, spixel*14, 29); Old_x(end) = []; Old_x = Old_x + spixel/2;
 lambda = 632.8e-9;
 is_max = true;
+mnist_digits;
 Full_width  = 0.6e-3;
 Full_height = 0.4e-3;
 G_size_x = 0.05e-3;
@@ -107,7 +110,7 @@ m_prop = 'sinc';
 init;
 UU = matrix_propagation_sinc(Old_x, X{1}, 0.01, k);
 GetImage = @(W)propagation_sinc(normalize_field(W),UU);
-mnist_digits;
+mask10_1;
 
 DOES = cellfun(@(DOES)kron(DOES, ones(2)), DOES, 'UniformOutput', false);
 DOES_MASK = cellfun(@(DOES_MASK)kron(DOES_MASK, ones(2)), DOES_MASK, 'UniformOutput', false);
@@ -213,9 +216,9 @@ xx = [-1 -1 1 1 -1]*G_size_x/2;
 yy = [1 -1 -1 1 1]*G_size_y/2;
 
 hold on; grid on;
-for iter=1:ln
+for iter=1:size(MASK,3)
     plot(xx+coords(iter,1), yy+coords(iter,2), '-k');
-    text(coords(iter,1), coords(iter,2), num2str(iter-1), ...
+    text(coords(iter,1), coords(iter,2), Labels{iter}, ...
         'fontsize', 14, 'HorizontalAlignment', 'center');
 end
 xlim([X{end}(1) X{end}(end)]); ylim([X{end}(1) X{end}(end)]);

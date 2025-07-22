@@ -37,14 +37,6 @@ TrainLabel = [repmat(1, [1 length(cat)]), repmat(2, [1 length(dog)])];
 
 Train = cell2mat(reshape(Train,1,1,[]));
 
-% coordinates of the centers of the focus areas
-if exist('coords', 'var') ~= 1
-    coords = [-G_size_x 0; G_size_x 0]*2;
-end
-
-if disp_info >= 2; rdisp('creating masks'); end
-MASK = single((abs(X{end} - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
-              (abs(Y{end} - permute(coords(:,2), [3 2 1])) < G_size_y/2));
 if disp_info >= 2; rdisp('load cat vs dog finished'); end
 
 clearvars Testsize catid dogid cat dog imag scx scy sc iter;
