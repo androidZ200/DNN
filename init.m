@@ -17,11 +17,9 @@ if exist('f', 'var')
 
     if disp_info >= 2; rdisp('creating grids'); end
     for iter99=1:length(f)+1
-        X{iter99} = single(linspace(-pixel(iter99,1)*N(iter99,1)/2, pixel(iter99,1)*N(iter99,1)/2, N(iter99,1)+1)); 
-        X{iter99}(end) = []; X{iter99} = X{iter99} + pixel(iter99,1)/2;
+        X{iter99} = single(linspace_m(-pixel(iter99,1)*N(iter99,1)/2, pixel(iter99,1)*N(iter99,1)/2, N(iter99,1))); 
         if is_gpu; X{iter99} = gpuArray(X{iter99}); end
-        Y{iter99} = single(linspace(-pixel(iter99,2)*N(iter99,2)/2, pixel(iter99,2)*N(iter99,2)/2, N(iter99,2)+1)'); 
-        Y{iter99}(end) = []; Y{iter99} = Y{iter99} + pixel(iter99,2)/2;
+        Y{iter99} = single(linspace_m(-pixel(iter99,2)*N(iter99,2)/2, pixel(iter99,2)*N(iter99,2)/2, N(iter99,2))'); 
         if is_gpu; Y{iter99} = gpuArray(Y{iter99}); end
     end
 

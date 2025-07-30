@@ -80,7 +80,7 @@ clear variables;
 N = 256/2;
 pixel = 4e-6*512/N;
 spixel = 8e-6;
-Old_x = linspace(-spixel*14, spixel*14, 29); Old_x(end) = []; Old_x = Old_x + spixel/2;
+Old_x = linspace_m(-spixel*14, spixel*14, 28);
 lambda = 632.8e-9;
 is_max = true;
 mnist_digits;
