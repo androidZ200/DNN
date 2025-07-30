@@ -49,9 +49,9 @@ function img = resize_img(img, Width_image, Height_image)
     sc = max(scx, scy);
     imag = im2gray(img);
     if sc > 1
-        imag = imresize(imag,1/sc);
+        imag = imresize(imag, round([size(img,1)/sc, size(img,2)/sc]));
     end
     img = zeros(Width_image, Height_image, 'single');
-    img(floor(end/2-size(imag,1)/2)+1:floor(end/2+size(imag,1)/2),...
+     img(floor(end/2-size(imag,1)/2)+1:floor(end/2+size(imag,1)/2),...
               floor(end/2-size(imag,2)/2)+1:floor(end/2+size(imag,2)/2)) = imag;
 end

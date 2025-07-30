@@ -1,5 +1,6 @@
 
 TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
+TestLabel = reshape(TestLabel, [], 1);
 
 if ~exist('max_batch', 'var'); max_batch = 40; end
 W = create_cells(N,'zeros',is_gpu);

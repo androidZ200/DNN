@@ -34,8 +34,8 @@ for num=1:ln
         axis square;
 		ax = subplot(1, 3, 2);
 		imagesc([X{end}(1) X{end}(end)], [Y{end}(1) Y{end}(end)], abs(F{end}).^2); colormap(ax, ssau);
-        C = max(max(abs(coords)));
-        xlim([-C C]*1.5); ylim([-C C]*1.5);
+        % C = max(max(abs(coords)));
+        % xlim([-C C]*1.5); ylim([-C C]*1.5);
         set(gca,'xtick',[],'ytick',[]);
         axis square;
         hold on;
