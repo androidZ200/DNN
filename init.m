@@ -28,12 +28,22 @@ if exist('f', 'var')
             
             case 'ASM'
                 if disp_info >= 2; rdisp('creating ASM kernels'); end
-                U = matrix_propagation_asm(pixel(1,1),N(1,1),permute(f,[1 3 2]),k);
-                if is_gpu; U = gpuArray(U); end
-                U = squeeze(num2cell(U, [1 2]));
-                FPropagations = [];
-                for iter99=1:length(U)
-                    FPropagations{end+1} = @(W)propagation_asm(W, U{iter99});
+                if N(1,1) == 1 && N(1,2) > 1 || N(1,1) > 1 && N(1,2) == 1
+                    U = matrix_propagation_asm_1d(pixel(1,1),max(N(1,:)),permute(f,[1 3 2]),k);
+                    if is_gpu; U = gpuArray(U); end
+                    U = squeeze(num2cell(U, [1 2]));
+                    FPropagations = [];
+                    for iter99=1:length(U)
+                        FPropagations{end+1} = @(W)propagation_asm_1d(W, U{iter99});
+                    end
+                else
+                    U = matrix_propagation_asm(pixel(1,1),N(1,1),permute(f,[1 3 2]),k);
+                    if is_gpu; U = gpuArray(U); end
+                    U = squeeze(num2cell(U, [1 2]));
+                    FPropagations = [];
+                    for iter99=1:length(U)
+                        FPropagations{end+1} = @(W)propagation_asm(W, U{iter99});
+                    end
                 end
                 BPropagations = FPropagations;
     
@@ -70,7 +80,7 @@ if exist('f', 'var')
     end
 
     if disp_info >= 2; rdisp('creating DOES'); end
-    if ~exist('DOES_MASK', 'var')    
+    if ~exist('GRAD_MASK', 'var')    
         GRAD_MASK = squeeze(num2cell(ones(1,1,size(N,1)-1,is_gpu)));
     end
     if ~exist('DOES', 'var')
