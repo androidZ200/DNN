@@ -109,8 +109,7 @@ for iter7=iter7+batch:batch:length(randind)
 
         if disp_info >= 1
             rdisp(['iter = ' num2str(iter7+iter9+max_batch-1) '/' num2str(length(randind)) '; accr = ' ...
-                num2str(Accr/cAccr*100) ...
-                '%; time = ' num2str(toc(tt1)) ';']);
+                num2str(Accr/cAccr*100) '%; time = ' num2str(toc(tt1)) ';']);
         end
     end
 

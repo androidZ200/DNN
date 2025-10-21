@@ -137,7 +137,6 @@ Train(:,:,2) = exp(-(X{1}.^2 + Y{1}.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*X{1});
 Train(:,:,3) = exp(-(X{1}.^2 + Y{1}.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*Y{1});
 Train(:,:,4) = exp(-(X{1}.^2 + Y{1}.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*Y{1});
 Train = normalize_field(Train);
-TrainLabel = [1; 2; 3; 4];
 Test = Train;
 
 Target(:,:,1) = ((X{end}.^2 + Y{end}.^2) < (B/4)^2).*((X{end}.^2 + Y{end}.^2) > (B/4.4)^2);
@@ -174,7 +173,6 @@ m_prop = 'sinc';
 init;
 
 Train = normalize_field(abs(X{1}) < 5e-3);
-TrainLabel = 1;
 Target = atan(X{2}*5e2)+pi/2;
 Target = Target - min(Target);
 Target = Target/sum(Target);
