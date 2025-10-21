@@ -6,15 +6,13 @@ if ~exist('speed', 'var'); speed = 1e-1; end
 if ~exist('slowdown', 'var'); slowdown = 0.999; end
 if ~exist('batch', 'var'); batch = P; end
 if ~exist('max_batch', 'var'); max_batch = batch; end
-if ~exist('method', 'var'); method = 'SGD'; end
-if ~exist('params', 'var'); params = []; end
 if ~exist('LossFunc', 'var'); LossFunc = 'MSE'; end
 if ~exist('sce_factor', 'var') && strcmp(LossFunc, 'SCE'); sce_factor = 500; end
 if ~exist('cycle', 'var'); cycle = 200; end
 if ~exist('deleted', 'var'); deleted = true; end
 if ~exist('MASK', 'var'); MASK = ones(1,1,size(Train,3)); end
 if ~exist('max_offsets', 'var'); max_offsets = 0; end
-if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
+if ~exist('optimizer', 'var'); optimizer = SGD_optimizer(); end
 if ~exist('is_backup', 'var'); is_backup = false; end
 if ~exist('backup_time', 'var'); backup_time = 3600; end
 
@@ -23,7 +21,6 @@ batch = min(batch, P);
 loss_graph(1) = nan;
 max_batch = min(batch, max_batch);
 
-if ~exist('tmp_data', 'var'); tmp_data = create_cells(N(1:end-1,:),'zeros',is_gpu); end
 zero_grad = create_cells(N(1:end-1,:),'zeros',is_gpu);
 W = create_cells(N,'zeros',is_gpu);
 F = create_cells(N,'zeros',is_gpu);
@@ -94,8 +91,7 @@ for ep=ep:epoch
         end
 
         % updating weights
-        iter_gradient = iter_gradient + 1;
-        [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, iter_gradient]);
+        gradient = optimizer.optimize(gradient);
         DOES = cellfun(@(DOES,gradient,GRAD_MASK)DOES.*exp(-1i*speed*gradient.*GRAD_MASK), ...
             DOES,gradient,GRAD_MASK,'UniformOutput',false);
         speed = speed*slowdown;
@@ -121,8 +117,7 @@ if disp_info >= 2; ndisp('training2 finished'); end
 
 clearvars num iter7 iter8 iter9 ep randind W Wend F loss gradient tt1 d tt_backup last_backup_time zero_grad;
 if deleted == true
-    clearvars P epoch speed slowdown batch method params cycle deleted tmp_data ...
-        iter_gradient max_offsets is_backup backup_time LossFunc;
+    clearvars P epoch speed slowdown batch cycle deleted optimizer max_offsets is_backup backup_time LossFunc;
 else
     deleted = true;
 end

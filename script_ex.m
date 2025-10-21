@@ -29,8 +29,7 @@ cycle = 2000;
 speed = 0.3;
 slowdown = 0.9995;
 LossFunc = 'SCE';
-method = 'Adam';
-params = [0.9 0.999 1e-8];
+optimizer = Adam_optimizer(N,is_gpu);
 training1;
 
 check_result;
@@ -67,8 +66,7 @@ cycle = 2000;
 speed = 0.3;
 slowdown = 0.9995;
 LossFunc = 'SCE';
-method = 'Adam';
-params = [0.9 0.999 1e-8];
+optimizer = Adam_optimizer(N,is_gpu);
 training1;
 
 check_result;
@@ -83,6 +81,7 @@ spixel = 8e-6;
 Old_x = linspace_m(-spixel*14, spixel*14, 28);
 lambda = 632.8e-9;
 is_max = true;
+disp_info = 1;
 mnist_digits;
 Full_width  = 0.6e-3;
 Full_height = 0.4e-3;
@@ -91,18 +90,14 @@ G_size_y = 0.05e-3;
 f = [0.01 0.01];
 
 DOES = exp(2i*pi*(rand(N,N,length(f))-0.5)/10);
-DOES_MASK = ones(size(DOES));
-tmp_data = zeros(size(DOES));
+GRAD_MASK = ones(size(DOES));
 DOES = squeeze(num2cell(DOES,[1 2]));
-DOES_MASK = squeeze(num2cell(DOES_MASK,[1 2]));
-tmp_data = squeeze(num2cell(tmp_data,[1 2]));
+GRAD_MASK = squeeze(num2cell(GRAD_MASK,[1 2]));
 
 cycle = 2000;
 speed = 0.3;
 slowdown = 0.9995;
 LossFunc = 'SCE';
-method = 'Adam';
-params = [0.9 0.999 1e-8];
 %%
 N = N*2;
 pixel = pixel/2;
@@ -113,14 +108,14 @@ GetImage = @(W)propagation_sinc(normalize_field(W),UU);
 mask10_1;
 
 DOES = cellfun(@(DOES)kron(DOES, ones(2)), DOES, 'UniformOutput', false);
-DOES_MASK = cellfun(@(DOES_MASK)kron(DOES_MASK, ones(2)), DOES_MASK, 'UniformOutput', false);
-tmp_data = cellfun(@(tmp_data)kron(tmp_data, ones(2)), tmp_data, 'UniformOutput', false);
+GRAD_MASK = cellfun(@(GRAD_MASK)kron(GRAD_MASK, ones(2)), GRAD_MASK, 'UniformOutput', false);
 
 epoch = 1;
 speed = 0.03;
 slowdown = 0.9995;
 batch = 20;
 deleted = false;
+optimizer = Adam_optimizer(N,is_gpu);
 training1;
 check_result;
 
@@ -156,8 +151,7 @@ batch = 4;
 cycle = 800;
 speed = 1;
 slowdown = 0.9992;
-method = 'Adam';
-params = [0.9 0.999 1e-8];
+optimizer = Adam_optimizer(N,is_gpu);
 training2;
 
 for iter=1:size(Train,3)
@@ -189,8 +183,7 @@ epoch = 100000;
 cycle = 1000;
 speed = 1e-2;
 slowdown = 0.99995;
-method = 'Adam';
-params = [0.9 0.999 1e-8];
+optimizer = Adam_optimizer(N,is_gpu);
 training2;
 
 %% phase function doe

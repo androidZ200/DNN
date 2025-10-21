@@ -7,8 +7,6 @@ if ~exist('slowdown', 'var'); slowdown = 0.999; end
 if ~exist('batch', 'var'); batch = 20; end
 if ~exist('max_batch', 'var'); max_batch = batch; end
 if ~exist('LossFunc', 'var'); LossFunc = 'SCE'; end
-if ~exist('method', 'var'); method = 'SGD'; end
-if ~exist('params', 'var'); params = []; end
 if ~exist('cycle', 'var'); cycle = 200; end
 if ~exist('deleted', 'var'); deleted = true; end
 if ~exist('sce_factor', 'var') && strcmp(LossFunc, 'SCE'); sce_factor = 80; end
@@ -16,7 +14,7 @@ if ~exist('sosh_factor', 'var') && strcmp(LossFunc, 'Sosh'); sosh_factor = 10; e
 if ~exist('joint_factor', 'var'); joint_factor = 0; end
 if ~exist('target_scores', 'var'); target_scores = eye(size(MASK,3),ln,'single'); end
 if ~exist('max_offsets', 'var'); max_offsets = 0; end
-if ~exist('iter_gradient', 'var'); iter_gradient = 0; end
+if ~exist('optimizer', 'var'); optimizer = SGD_optimizer(); end
 if ~exist('is_backup', 'var'); is_backup = false; end
 if ~exist('backup_time', 'var') && is_backup; backup_time = 3600; end
 if ~exist('Accr', 'var'); Accr = 0; end
@@ -27,7 +25,6 @@ batch = min(batch, P);
 accr_graph(1) = nan;
 max_batch = min(batch, max_batch);
 
-if ~exist('tmp_data', 'var'); tmp_data = create_cells(N(1:end-1,:),'zeros',is_gpu); end
 zero_grad = create_cells(N(1:end-1,:),'zeros',is_gpu);
 W = create_cells(N,'zeros',is_gpu);
 F = create_cells(N,'zeros',is_gpu);
@@ -126,8 +123,7 @@ for iter7=iter7+batch:batch:length(randind)
     end
 
     % updating weights
-    iter_gradient = iter_gradient + 1;
-    [gradient, tmp_data] = criteria(gradient, tmp_data, method, [params, iter_gradient]);
+    gradient = optimizer.optimize(gradient);
     DOES = cellfun(@(DOES,gradient,GRAD_MASK)DOES.*exp(-1i*speed*gradient.*GRAD_MASK), ...
         DOES,gradient,GRAD_MASK,'UniformOutput',false);
     speed = speed*slowdown;
@@ -154,8 +150,8 @@ if disp_info >= 2; ndisp('training1 finished'); end
 clearvars num iter7 iter8 iter9 randind me mi W Wend F Accr cAccr gradient p I alpha tt1 ...
     d tt_backup last_backup_time index zero_grad deep_grad;
 if deleted == true
-    clearvars P epoch speed slowdown batch LossFunc method params cycle deleted tmp_data ...
-        sce_factor joint_factor target_scores iter_gradient max_offsets sosh_factor is_backup backup_time;
+    clearvars P epoch speed slowdown batch LossFunc optimizer cycle deleted ...
+        sce_factor joint_factor target_scores max_offsets sosh_factor is_backup backup_time;
 else
     deleted = true;
 end
