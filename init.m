@@ -80,11 +80,8 @@ if exist('f', 'var')
     end
 
     if disp_info >= 2; rdisp('creating DOES'); end
-    if ~exist('GRAD_MASK', 'var')    
-        GRAD_MASK = squeeze(num2cell(ones(1,1,size(N,1)-1,is_gpu)));
-    end
-    if ~exist('DOES', 'var')
-        DOES = create_cells(N(1:end-1,:),'ones',is_gpu);
+    for iter99=1:length(f)
+        DOES{iter99,1} = Phase_DOE(N(iter99,[2 1]),is_gpu);
     end
 end
 if disp_info >= 2; rdisp('init finished'); end

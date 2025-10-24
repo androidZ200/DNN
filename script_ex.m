@@ -193,9 +193,21 @@ ssau(1:40:end,:) = [];
 
 for iter=1:length(DOES)
     figure;
-    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], angle(DOES{iter}));
+    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], angle(DOES{iter}.get_field()));
     title(['DOE ' num2str(iter)]);
     colormap(ssau); colorbar;
+    axis square;
+end
+
+clearvars ssau iter;
+
+%% amplitude function doe
+
+for iter=1:length(DOES)
+    figure;
+    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], abs(DOES{iter}.get_field()));
+    title(['DOE ' num2str(iter)]);
+    colormap(gray); colorbar;
     axis square;
 end
 

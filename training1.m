@@ -31,7 +31,7 @@ F = create_cells(N,'zeros',is_gpu);
 
 for iter=1:length(F)
     deep_grad = iter;
-    if sum(sum(GRAD_MASK{iter})) > 0; break; end
+    if sum(sum(DOES{iter}.mask)) > 0; break; end
 end
 
 %% training
@@ -51,7 +51,7 @@ for iter7=iter7+batch:batch:length(randind)
     if max_offsets > 0
         off = randi(3, length(DOES), 2)-2;
         off = off*max_offsets;
-        for iter8 = 1:size(DOES,3)
+        for iter8 = 1:length(DOES)
             DOES{iter8} = circshift(DOES{iter8}, off(iter8,:));
         end
     end
@@ -63,7 +63,7 @@ for iter7=iter7+batch:batch:length(randind)
         % direct propagation
         W{1} = GetImage(Train(:,:,index));
         for iter8=1:length(W)-1
-            W{iter8+1} = FPropagations{iter8}(W{iter8}.*DOES{iter8});
+            W{iter8+1} = FPropagations{iter8}(DOES{iter8}.*W{iter8});
         end
         [me, mi] = get_scores(permute(W{end},[1 2 4 3]), MASK, is_max);
         I = sum(me);
@@ -103,9 +103,9 @@ for iter7=iter7+batch:batch:length(randind)
 
         % reverse propagation
         for iter8=length(F)-1:-1:deep_grad
-            F{iter8} = BPropagations{iter8}(F{iter8+1}).*DOES{iter8};
+            F{iter8} = DOES{iter8}.*BPropagations{iter8}(F{iter8+1});
         end
-        gradient = cellfun(@(gr,w,f)gr-imag(sum(w.*f,3)), gradient,W(1:end-1),F(1:end-1),'UniformOutput',false);
+        gradient = cellfun(@(gr,w,f)gr+sum(w.*f,3), gradient,W(1:end-1),F(1:end-1),'UniformOutput',false);
 
         if disp_info >= 1
             rdisp(['iter = ' num2str(iter7+iter9+max_batch-1) '/' num2str(length(randind)) '; accr = ' ...
@@ -122,9 +122,9 @@ for iter7=iter7+batch:batch:length(randind)
     end
 
     % updating weights
+    gradient = cellfun(@(DOES,error) DOES.get_gradient(error),DOES,gradient,'UniformOutput',false);
     gradient = optimizer.optimize(gradient);
-    DOES = cellfun(@(DOES,gradient,GRAD_MASK)DOES.*exp(-1i*speed*gradient.*GRAD_MASK), ...
-        DOES,gradient,GRAD_MASK,'UniformOutput',false);
+    cellfun(@(DOES,gradient)DOES.gradient_step(-speed*gradient),DOES,gradient,'UniformOutput',false);
     speed = speed*slowdown;
     
     % backup

@@ -14,7 +14,7 @@ for iter3=1:size(Test,3)/max_batch
     % running through the system
     W{1} = GetImage(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
     for iter4=1:length(DOES)
-        W{iter4+1} = FPropagations{iter4}(W{iter4}.*DOES{iter4});
+        W{iter4+1} = FPropagations{iter4}(DOES{iter4}.*W{iter4});
     end
     total_enegry = total_enegry + sum(abs(W{end}).^2.*sum(MASK,3), 'all');
     TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = get_scores(permute(W{end},[1 2 4 3]), MASK, is_max);
