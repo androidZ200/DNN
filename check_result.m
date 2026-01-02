@@ -70,12 +70,12 @@ for ii = 1:ln
         if err_tabl(jj, ii)/sum(err_tabl(:, ii)) > 0.5
             color = [1 1 1];
         end
-        text(ii, jj, sprintf('%.1f', err_tabl(jj, ii)/sum(err_tabl(:, ii))*100), 'fontsize', 14, 'color', color, ...
-            'HorizontalAlignment', 'center');
+        text(ii, jj, replace(sprintf('%.1f', err_tabl(jj, ii)/sum(err_tabl(:, ii))*100), '.', ','), ...
+            'fontsize', 14, 'color', color, 'HorizontalAlignment', 'center');
     end
 end
 accuracy = sum(diag(err_tabl))/sum(sum(err_tabl,1))*100;
-title(['accuracy = ' num2str(accuracy) '%;']);
+title(['accuracy = ' replace(num2str(accuracy), '.', ',') '%;']);
 ndisp(['accuracy = ' num2str(accuracy) '%;']);
 clearvars ii jj grad color;
 return;
@@ -92,13 +92,13 @@ colormap([linspace(1, 201/255, grad)', linspace(1, 88/255, grad)', linspace(1, 3
 for ii = 1:ln
     for jj = 1:size(MASK,3)
         color = [0 0 0];
-        text(ii, jj, sprintf('%.1f', int_tabl(jj, ii)), 'fontsize', 14, ...
+        text(ii, jj, replace(sprintf('%.1f', int_tabl(jj, ii)), '.', ','), 'fontsize', 14, ...
             'color', color, 'HorizontalAlignment', 'center');
     end
 end
 T = sort(int_tabl);
 min_contrast = min((T(end,:) - T(end-1,:))./(T(end,:) + T(end-1,:))*100);
-title(['min contrast = ' num2str(min_contrast) '%;']);
+title(['min contrast = ' replace(num2str(min_contrast), '.', ',') '%;']);
 ndisp(['min contrast = ' num2str(min_contrast) '%;']);
 clearvars ii jj grad T color;
 return;
