@@ -193,7 +193,7 @@ ssau(1:40:end,:) = [];
 
 for iter=1:length(DOES)
     figure;
-    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], angle(DOES{iter}.get_field()));
+    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], angle(DOES{iter}.get_field()), [0 2*pi]);
     title(['DOE ' num2str(iter)]);
     colormap(ssau); colorbar;
     axis square;

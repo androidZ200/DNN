@@ -9,8 +9,12 @@ classdef (Abstract) DOE < handle
         function W = propagation(obj,W)
             W = W.*obj.get_field();
         end
-        function W = times(obj,W)
-            W = propagation(obj,W);
+        function C = times(A,B)
+            if isa(A, 'DOE')
+                C = propagation(A,B);
+            else
+                C = propagation(B,A);
+            end
         end
     end
 end

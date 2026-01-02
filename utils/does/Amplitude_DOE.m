@@ -22,7 +22,8 @@ classdef Amplitude_DOE < DOE
         end
 
         function gradient = get_gradient(obj,error)
-            gradient = real(error).*obj.sigmoid(obj.theta).*(1 - obj.sigmoid(obj.theta));
+            sig = obj.sigmoid(obj.theta);
+            gradient = real(error).*sig.*(1 - sig);
         end
         function gradient_step(obj,gradient)
             obj.theta = obj.theta + gradient.*obj.mask;

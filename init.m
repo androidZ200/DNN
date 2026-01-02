@@ -2,7 +2,7 @@
 addpath(genpath(pwd));
 
 if ~exist('lambda', 'var'); lambda = 0.532e-6; end  % wavelength
-if ~exist('is_max', 'var'); is_max = true; end  % find max or sum in MASKs
+if ~exist('is_max', 'var'); is_max = false; end  % find max or sum in MASKs
 if ~exist('is_gpu', 'var'); is_gpu = true; end  % calculation on gpu
 if ~exist('disp_info', 'var'); disp_info = 1; end  % display information (0 - none, 1 - progress, 2 - all)
 k = 2*pi/lambda;
