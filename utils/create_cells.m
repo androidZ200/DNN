@@ -1,20 +1,20 @@
-function Arr = create_cells(N,type,is_gpu)
+function Arr = create_cells(N,batch,type,is_gpu)
     Arr = cell(size(N,1),1);
     for it=1:length(Arr)
         switch type
             case 'zeros'
-                Arr{it} = zeros(N(it,:),'single').';
+                Arr{it} = permute(zeros([N(it,:), batch],'single'), [2 1 3]);
 
             case 'ones'
-                Arr{it} = ones(N(it,:),'single').';
+                Arr{it} = permute(ones([N(it,:), batch],'single'), [2 1 3]);
 
             case 'rand'
-                Arr{it} = rand(N(it,:),'single').';
+                Arr{it} = permute(rand([N(it,:), batch],'single'), [2 1 3]);
 
             otherwise
                 error('type can be zeros, ones or rand');
         end
-        if nargin > 2 && is_gpu
+        if nargin > 3 && is_gpu
             Arr{it} = gpuArray(Arr{it});
         end
     end

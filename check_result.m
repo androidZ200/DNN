@@ -3,7 +3,7 @@ TestScores = zeros(size(MASK,3), size(Test,3), 'single'); % scores
 TestLabel = reshape(TestLabel, [], 1);
 
 if ~exist('max_batch', 'var'); max_batch = 40; end
-W = create_cells(N,'zeros',is_gpu);
+W = create_cells(N,max_batch,'zeros',is_gpu);
 max_batch = min(size(Test,3), max_batch);
 total_enegry = 0;
 additionalinfo = '';
@@ -27,7 +27,7 @@ for iter3=1:size(Test,3)/max_batch
     if disp_info >= 1; rdisp(['check result\n' waitbartext(60, iter3/size(Test,3)*max_batch) ...
             ' ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%' additionalinfo]); end
 end
-rdisp(['check result takes time: ' num2str(toc(ttcr)) 's']);
+if disp_info >= 1; rdisp(['check result takes time: ' num2str(toc(ttcr)) 's']); end
 %%
 % error table
 [~, argmax] = max(TestScores);

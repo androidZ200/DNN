@@ -9,7 +9,7 @@ classdef Adagrad_optimizer < Optimizer
             if nargin > 2
                 obj.epsilon = epsilon;
             end
-            obj.state = create_cells(N(1:end-1,:),'zeros',is_gpu);
+            obj.state = create_cells(N(1:end-1,:),1,'zeros',is_gpu);
         end
 
         function gradient = optimize(obj,gradient)

@@ -153,12 +153,12 @@ slowdown = 0.9992;
 optimizer = Adam_optimizer(N,is_gpu);
 training2;
 
+W = GetImage(Train);
+for iter8=1:length(DOES)
+    W = FPropagations{iter8}(DOES{iter8}.*W);
+end
 for iter=1:size(Train,3)
-    W = GetImage(Train(:,:,iter));
-    for iter8=1:length(DOES)
-        W = FPropagations{iter8}(W.*DOES{iter8});
-    end
-    figure; imagesc(abs(W).^2);
+    figure; imagesc(abs(W(:,:,iter)).^2);
 end
 
 %% 1-dimension image generation
@@ -193,7 +193,7 @@ ssau(1:40:end,:) = [];
 
 for iter=1:length(DOES)
     figure;
-    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], angle(DOES{iter}.get_field()), [0 2*pi]);
+    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], angle(DOES{iter}.get_field()), [-pi pi]);
     title(['DOE ' num2str(iter)]);
     colormap(ssau); colorbar;
     axis square;

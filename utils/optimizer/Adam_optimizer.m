@@ -15,8 +15,8 @@ classdef Adam_optimizer < Optimizer
                 obj.viscosity = viscosity;
                 obj.accumulater = accumulater;
             end
-            obj.state_v = create_cells(N(1:end-1,:),'zeros',is_gpu);
-            obj.state_a = create_cells(N(1:end-1,:),'zeros',is_gpu);
+            obj.state_v = create_cells(N(1:end-1,:),1,'zeros',is_gpu);
+            obj.state_a = create_cells(N(1:end-1,:),1,'zeros',is_gpu);
         end
 
         function gradient = optimize(obj,gradient)

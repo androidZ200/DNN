@@ -25,9 +25,9 @@ batch = min(batch, P);
 accr_graph(1) = nan;
 max_batch = min(batch, max_batch);
 
-zero_grad = create_cells(N(1:end-1,:),'zeros',is_gpu);
-W = create_cells(N,'zeros',is_gpu);
-F = create_cells(N,'zeros',is_gpu);
+zero_grad = create_cells(N(1:end-1,:),1,'zeros',is_gpu);
+W = create_cells(N,max_batch,'zeros',is_gpu);
+F = create_cells(N,max_batch,'zeros',is_gpu);
 
 for iter=1:length(F)
     deep_grad = iter;
