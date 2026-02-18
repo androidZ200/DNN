@@ -184,34 +184,15 @@ slowdown = 0.99995;
 optimizer = Adam_optimizer(N,is_gpu);
 training2;
 
-%% phase function doe
-
-ssau = [linspace(40,  32, 40), linspace( 32,  255, 40), linspace(255, 201, 40), linspace(201, 40, 40);...
-        linspace(40, 146, 40), linspace(146,  255, 40), linspace(255,  88, 40), linspace( 88, 40, 40);...
-        linspace(40, 201, 40), linspace(201,  255, 40), linspace(255,  32, 40), linspace( 32, 40, 40)]'/255;
-ssau(1:40:end,:) = [];
+%% image function doe
 
 for iter=1:length(DOES)
     figure;
-    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], angle(DOES{iter}.get_field()), [-pi pi]);
+    imagesc(DOES{iter});
     title(['DOE ' num2str(iter)]);
-    colormap(ssau); colorbar;
-    axis square;
 end
 
-clearvars ssau iter;
-
-%% amplitude function doe
-
-for iter=1:length(DOES)
-    figure;
-    imagesc([X{iter}(1) X{iter}(end)], [X{iter}(1) X{iter}(end)], abs(DOES{iter}.get_field()));
-    title(['DOE ' num2str(iter)]);
-    colormap(gray); colorbar;
-    axis square;
-end
-
-clearvars ssau iter;
+clearvars iter;
 
 %% outputs regions
 

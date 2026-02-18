@@ -32,6 +32,11 @@ classdef Amplitude_DOE < DOE
             obj.theta = circshift(obj.theta, N);
             obj.mask = circshift(obj.mask, N);
         end
+        function obj = imagesc(obj)
+            imagesc(get_field(obj), [0 1]);
+            colormap(gray); colorbar;
+            axis square;
+        end
         function Field = get_field(obj)
             Field = obj.sigmoid(obj.theta);
         end

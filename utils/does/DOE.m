@@ -3,6 +3,7 @@ classdef (Abstract) DOE < handle
         get_gradient(error)
         gradient_step(gradient)
         circshift(N)
+        imagesc()
         get_field()
     end
     methods
