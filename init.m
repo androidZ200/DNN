@@ -81,7 +81,7 @@ if exist('f', 'var')
 
     if disp_info >= 2; rdisp('creating DOES'); end
     for iter99=1:length(f)
-        DOES{iter99,1} = Phase_DOE(N(iter99,[2 1]),is_gpu);
+        DOES{iter99,1} = PhaseDOE(N(iter99,[2 1]),is_gpu);
     end
 end
 if disp_info >= 2; rdisp('init finished'); end

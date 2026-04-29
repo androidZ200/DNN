@@ -1,5 +1,6 @@
 classdef (Abstract) Optimizer < handle
     methods (Abstract)
-        optimize(gradient)
+        optimize(gradient);
+        reset();
     end
 end
