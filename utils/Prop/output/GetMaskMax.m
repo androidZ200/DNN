@@ -1,10 +1,10 @@
 classdef GetMaskMax < GetMaskOutput
-    properties
+    properties (Access=protected)
         Maximum;
     end
     methods
-        function obj = GetMaskMax(pixel,N,is_gpu,Mask)
-            obj = obj@GetMaskOutput(pixel,N,is_gpu,Mask);
+        function obj = GetMaskMax(Mesh,Mask)
+            obj = obj@GetMaskOutput(Mesh,Mask);
         end
         
         function W_out = propagation(obj, W_in)

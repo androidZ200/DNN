@@ -1,7 +1,7 @@
 classdef GetMaskSum < GetMaskOutput
     methods
-        function obj = GetMaskSum(pixel,N,is_gpu,Mask)
-            obj = obj@GetMaskOutput(pixel,N,is_gpu,Mask);
+        function obj = GetMaskSum(Mesh,Mask)
+            obj = obj@GetMaskOutput(Mesh,Mask);
         end
         
         function W_out = propagation(obj, W_in)

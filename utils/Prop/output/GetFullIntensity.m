@@ -1,13 +1,13 @@
 classdef GetFullIntensity < GetOutput
-    properties
-        Mask;
+    properties (SetAccess=protected)
+        Mask logical;
     end
 
     methods
-        function obj = GetFullIntensity(pixel,N,is_gpu,Mask)
-            obj = obj@GetOutput(pixel,N,is_gpu);
-            if(nargin > 3)
-                obj.Mask = Mask;
+        function obj = GetFullIntensity(Mesh,Mask)
+            obj = obj@GetOutput(Mesh);
+            if(nargin > 1)
+                obj.Mask = GPUTest(Mask);
             else
                 obj.Mask = 1;
             end

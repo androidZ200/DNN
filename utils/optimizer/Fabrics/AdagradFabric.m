@@ -10,8 +10,8 @@ classdef AdagradFabric < OptimizerFabric
             end
         end
 
-        function optimizer = generate(obj,N,is_gpu)
-            optimizer = AdagradOptimizer(N,is_gpu,obj.epsilon);
+        function optimizer = generate(obj,Mesh)
+            optimizer = AdagradOptimizer(Mesh,obj.epsilon);
         end
     end
 end

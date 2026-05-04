@@ -1,27 +1,27 @@
 classdef ASMPropagator < FreePropagator
-    properties
+    properties(Access=private)
         U;
         mesh = [];
     end
 
     methods
-        function obj = ASMPropagator(f,lambda)
-            obj.f = f;
-            obj.lambda = lambda;
+        function obj = ASMPropagator(distance, wavelength)
+            obj.distance = distance;
+            obj.wavelength = wavelength;
         end
 
-        function init(obj,Before,After)
-            if isa(Before, 'Prop')
-                mesh_in = Before.output_mesh();
-            elseif isa(Before, 'Mesh')
-                mesh_in = Before;
+        function init(obj, Before_Mesh, After_Mesh)
+            if isa(Before_Mesh, 'Prop')
+                mesh_in = Before_Mesh.output_mesh();
+            elseif isa(Before_Mesh, 'Mesh')
+                mesh_in = Before_Mesh;
             else
                 error('before is not propagator or mesh'); 
             end
-            if isa(After, 'Prop')
-                mesh_out = After.input_mesh();
-            elseif isa(Before, 'Mesh')
-                mesh_out = After;
+            if isa(After_Mesh, 'Prop')
+                mesh_out = After_Mesh.input_mesh();
+            elseif isa(Before_Mesh, 'Mesh')
+                mesh_out = After_Mesh;
             else
                 error('after is not propagator or mesh'); 
             end

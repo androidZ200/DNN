@@ -14,8 +14,8 @@ classdef AdamFabric < OptimizerFabric
             end
         end
 
-        function optimizer = generate(obj,N,is_gpu)
-            optimizer = AdamOptimizer(N,is_gpu,obj.viscosity,obj.accumulater,obj.epsilon);
+        function optimizer = generate(obj,Mesh)
+            optimizer = AdamOptimizer(Mesh,obj.viscosity,obj.accumulater,obj.epsilon);
         end
     end
 end

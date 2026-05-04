@@ -1,6 +1,6 @@
 classdef SGDFabric < OptimizerFabric
     methods
-        function optimizer = generate(obj,N,is_gpu)
+        function optimizer = generate(obj,Mesh)
             optimizer = SGDOptimizer();
         end
     end

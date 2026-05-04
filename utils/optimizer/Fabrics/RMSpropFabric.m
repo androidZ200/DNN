@@ -12,8 +12,8 @@ classdef RMSpropFabric < OptimizerFabric
             end
         end
 
-        function optimizer = generate(obj,N,is_gpu)
-            optimizer = RMSpropOptimizer(N,is_gpu,obj.accumulater,obj.epsilon);
+        function optimizer = generate(obj,Mesh)
+            optimizer = RMSpropOptimizer(Mesh,obj.accumulater,obj.epsilon);
         end
     end
 end

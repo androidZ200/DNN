@@ -1,11 +1,11 @@
 classdef (Abstract) GetMaskOutput < GetOutput
-    properties
+    properties (SetAccess=protected)
         Mask
     end
     
     methods
-        function obj = GetMaskOutput(pixel,N,is_gpu,Mask)
-            obj = obj@GetOutput(pixel,N,is_gpu);
+        function obj = GetMaskOutput(Mesh,Mask)
+            obj = obj@GetOutput(Mesh);
             obj.Mask = reshpe(Mask, size(Mask,1), size(Mask,2), 1, []);
         end
         

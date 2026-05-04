@@ -10,8 +10,8 @@ classdef NesterovFabric < OptimizerFabric
             end
         end
 
-        function optimizer = generate(obj,N,is_gpu)
-            optimizer = NesterovOptimizer(N,is_gpu,obj.viscosity);
+        function optimizer = generate(obj,Mesh)
+            optimizer = NesterovOptimizer(Mesh,obj.viscosity);
         end
     end
 end

@@ -4,5 +4,7 @@ classdef SGDOptimizer < Optimizer
         end
         function reset(obj)
         end
+        function obj = circshift(obj, N)
+        end
     end
 end

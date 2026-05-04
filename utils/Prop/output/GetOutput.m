@@ -1,10 +1,14 @@
-classdef (Abstract) GetOutput < Prop & Mesh
-    properties
+classdef (Abstract) GetOutput < handle
+    properties (SetAccess=protected)
+        Mesh Mesh;
+    end
+    properties (Access=protected)
         lastW;
     end
+
     methods
-        function obj = GetOutput(pixel,N,is_gpu)
-            obj@Mesh(pixel,N,is_gpu);
+        function obj = GetOutput(Mesh)
+            obj.Mesh = Mesh;
         end
 
         function W_out = propagation(obj, W_in)
@@ -14,8 +18,8 @@ classdef (Abstract) GetOutput < Prop & Mesh
         function W_out = back_propagation(obj, W_in)
             W_out = 2*W_in.*conj(obj.lastW);
         end
-        function mesh = output_mesh(obj)
-            mesh = obj;
+        function mesh = input_mesh(obj)
+            mesh = obj.Mesh;
         end
     end
 end
