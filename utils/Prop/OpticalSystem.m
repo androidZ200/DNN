@@ -1,4 +1,4 @@
-classdef System < handle
+classdef OpticalSystem < handle
     properties
         Middle (1,1) Prop;
         Input  (1,1) GetInput;
@@ -6,7 +6,7 @@ classdef System < handle
     end
     
     methods
-        function obj = System(Input, Middle, Output)
+        function obj = OpticalSystem(Input, Middle, Output)
             obj.Input = Input;
             obj.Middle = Middle;
             obj.Output = Output;
