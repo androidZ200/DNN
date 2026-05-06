@@ -1,6 +1,13 @@
 % coordinates of the centers of the focus areas
-coords = [-distance/2-G_size_x/2 0; distance/2+G_size_x/2 0];
+function [Mask, coords] = mask2(Mesh, distance, Mask_size)
+    if length(Mask_size) == 1
+        Mask_size(2) = Mask_size(1);
+    end
 
-if disp_info >= 2; ndisp('creating masks'); end
-MASK = single((abs(X{end} - permute(coords(:,1), [3 2 1])) < G_size_x/2).*...
-              (abs(Y{end} - permute(coords(:,2), [3 2 1])) < G_size_y/2));
+    coords = [-Mask_size(1)/2 - distance/2 0; ...
+               Mask_size(2)/2 + distance/2 0];
+    coords = permute(coords, [3 2 1]);
+    
+    Mask = single((abs(Mesh.X - coords(1,2,:)) < Mask_size(2)/2).*...
+                  (abs(Mesh.Y - coords(1,1,:)) < Mask_size(1)/2));
+end
