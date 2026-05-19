@@ -1,7 +1,7 @@
 classdef Mesh < handle
     properties (SetAccess=private)
-        X (1,:) single = [];
-        Y (1,:) single = [];
+        X (:,1) = [];
+        Y (1,:) = [];
     end
 
     methods
@@ -9,8 +9,10 @@ classdef Mesh < handle
             if length(pixel) == 1; pixel(2) = pixel; end
             if length(N) == 1; N(2) = N; end
 
-            if N(1) > 1; obj.Y = GPUTest(linspace_m(-pixel(1)*N(1)/2, pixel(1)*N(1)/2, N(1)).'); end
-            if N(2) > 1; obj.X = GPUTest(linspace_m(-pixel(2)*N(2)/2, pixel(2)*N(2)/2, N(2))); end
+            PN = pixel.*N/2;
+
+            if N(1) > 1; obj.X = GPUTest(single(linspace_m(-PN(1), PN(1), N(1)).')); end
+            if N(2) > 1; obj.Y = GPUTest(single(linspace_m(-PN(2), PN(2), N(2)))); end
         end
 
         function sz = size(obj, N)

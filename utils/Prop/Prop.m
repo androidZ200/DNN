@@ -1,4 +1,4 @@
-classdef (Abstract) Prop
+classdef (Abstract) Prop < handle
     methods (Abstract)
         init(Before_Mesh, After_Mesh);
 

@@ -40,9 +40,9 @@ classdef PhaseDOE < DOE
             Field = exp(1i*obj.phi);
         end
         function step(obj, gradient, speed)
-            gradient = sum(gradient,setdiff(find(size(gradient)),[1 2]));
-            gradient = obj.optimizer.optimize(gradient);
-            obj.phi = obj.phi + speed*gradient.*obj.Train_Mask;
+            if obj.is_trainable()
+                obj.phi = obj.phi + obj.preparing_gradient(gradient,speed);
+            end
         end
     end
 end

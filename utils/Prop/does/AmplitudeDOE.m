@@ -37,9 +37,9 @@ classdef AmplitudeDOE < DOE
             Field = obj.sigmoid(obj.theta);
         end
         function step(obj, gradient, speed)
-            gradient = sum(gradient,setdiff(find(size(gradient)),[1 2]));
-            gradient = obj.optimizer.optimize(gradient);
-            obj.theta = obj.theta + speed*gradient.*obj.Train_Mask;
+            if obj.is_trainable()
+                obj.theta = obj.theta + obj.preparing_gradient(gradient,speed);
+            end
         end
     end
 
