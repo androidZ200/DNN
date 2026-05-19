@@ -1,5 +1,5 @@
 classdef SincPropagator < FreePropagator
-    properties(Access=private)
+    properties(SetAccess=private)
         Left = 1;
         Right = 1;
         Rev_Left = 1;
@@ -16,14 +16,14 @@ classdef SincPropagator < FreePropagator
         end
 
         function init(obj, Before_Mesh, After_Mesh)
-            if isa(Before_Mesh, 'Prop')
+            if isa(Before_Mesh, 'Prop') || isa(Before_Mesh, 'GetInput')
                 obj.mesh_in = Before_Mesh.output_mesh();
             elseif isa(Before_Mesh, 'Mesh')
                 obj.mesh_in = Before_Mesh;
             else
                 error('before is not propagator or mesh'); 
             end
-            if isa(After_Mesh, 'Prop')
+            if isa(After_Mesh, 'Prop') || isa(After_Mesh, 'GetOutput')
                 obj.mesh_out = After_Mesh.input_mesh();
             elseif isa(Before_Mesh, 'Mesh')
                 obj.mesh_out = After_Mesh;
@@ -32,11 +32,11 @@ classdef SincPropagator < FreePropagator
             end
 
             if ~isempty(obj.mesh_in.Y) && ~isempty(obj.mesh_out.Y)
-                obj.Left = obj.matrix_sinc(obj.mesh_in.Y, obj.mesh_out.Y, obj.f, 2*pi/obj.lambda);
+                obj.Left = obj.matrix_sinc(obj.mesh_in.Y, obj.mesh_out.Y, obj.distance, 2*pi/obj.wavelength);
                 if isequal(obj.mesh_in.Y, obj.mesh_out.Y)
                     obj.Rev_Left = obj.Left;
                 else
-                    obj.Rev_Left = obj.matrix_sinc(obj.mesh_out.Y, obj.mesh_in.Y, obj.f, 2*pi/obj.lambda);
+                    obj.Rev_Left = obj.matrix_sinc(obj.mesh_out.Y, obj.mesh_in.Y, obj.distance, 2*pi/obj.wavelength);
                 end
             end
             
@@ -44,12 +44,12 @@ classdef SincPropagator < FreePropagator
                 if isequal(obj.mesh_in.X, obj.mesh_in.Y) && isequal(obj.mesh_out.X, obj.mesh_out.Y)
                     obj.Right = obj.Left.';
                 else
-                    obj.Right = obj.matrix_sinc(obj.mesh_in.X, obj.mesh_out.X, obj.f, 2*pi/obj.lambda).';
+                    obj.Right = obj.matrix_sinc(obj.mesh_in.X, obj.mesh_out.X, obj.distance, 2*pi/obj.wavelength).';
                 end
                 if isequal(obj.mesh_in.X, obj.mesh_out.X)
                     obj.Rev_Right = obj.Right;
                 else
-                    obj.Rev_Right = obj.matrix_sinc(obj.mesh_out.X, obj.mesh_in.X, obj.f, 2*pi/obj.lambda).';
+                    obj.Rev_Right = obj.matrix_sinc(obj.mesh_out.X, obj.mesh_in.X, obj.distance, 2*pi/obj.wavelength).';
                 end
             end
         end
@@ -61,14 +61,14 @@ classdef SincPropagator < FreePropagator
             W = pagemtimes(obj.Rev_Left, pagemtimes(W, obj.Rev_Right));
         end
         function mesh = input_mesh(obj)
-            if ~empty(obj.mesh_in)
+            if ~isempty(obj.mesh_in)
                 mesh = obj.mesh_in;
             else
                 error('mesh does not initialize');
             end
         end
         function mesh = output_mesh(obj)
-            if ~empty(obj.mesh_out)
+            if ~isempty(obj.mesh_out)
                 mesh = obj.mesh_out;
             else
                 error('mesh does not initialize');

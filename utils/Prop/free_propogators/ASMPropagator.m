@@ -1,5 +1,5 @@
 classdef ASMPropagator < FreePropagator
-    properties(Access=private)
+    properties(SetAccess=private)
         U;
         mesh = [];
     end
@@ -11,14 +11,14 @@ classdef ASMPropagator < FreePropagator
         end
 
         function init(obj, Before_Mesh, After_Mesh)
-            if isa(Before_Mesh, 'Prop')
+            if isa(Before_Mesh, 'Prop') || isa(Before_Mesh, 'GetInput')
                 mesh_in = Before_Mesh.output_mesh();
             elseif isa(Before_Mesh, 'Mesh')
                 mesh_in = Before_Mesh;
             else
                 error('before is not propagator or mesh'); 
             end
-            if isa(After_Mesh, 'Prop')
+            if isa(After_Mesh, 'Prop') || isa(After_Mesh, 'GetOutput')
                 mesh_out = After_Mesh.input_mesh();
             elseif isa(Before_Mesh, 'Mesh')
                 mesh_out = After_Mesh;
@@ -44,7 +44,7 @@ classdef ASMPropagator < FreePropagator
             obj.mesh = mesh_in;
 
             T = circshift(kx.^2 + ky.^2, [Nx/2 Ny/2]);
-            obj.U = exp(1i*obj.f.*single(sqrt((2*pi/obj.lambda).^2 - T)));
+            obj.U = exp(1i*obj.distance.*single(sqrt((2*pi/obj.wavelength).^2 - T)));
         end
 
         function W = propagation(obj, W)
@@ -54,7 +54,7 @@ classdef ASMPropagator < FreePropagator
             W = obj.propagation(W);
         end
         function mesh = input_mesh(obj)
-            if ~empty(obj.mesh)
+            if ~isempty(obj.mesh)
                 mesh = obj.mesh;
             else
                 error('mesh does not initialize');

@@ -1,4 +1,4 @@
-classdef (Abstract) FreePropagator < Prop & handle
+classdef (Abstract) FreePropagator < Prop
     properties
         distance;
         wavelength;
