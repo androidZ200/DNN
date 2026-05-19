@@ -12,16 +12,16 @@ classdef ErrorSCENorm < ErrorFunction
         end
 
         function error = get_error(obj,out,target)
-            I = sum(out,4);
-            p = exp(out./I*obj.alpha);
-            error = -sum(target.*log(-p./sum(p,4)),4);
+            I = sum(out);
+            p = exp(out./I * obj.alpha);
+            error = -sum(target.*log(p./sum(p)));
         end
         function gradient = get_gradient(obj,out,target)
-            I = sum(out,4);
+            I = sum(out);
             out = out./I;
             p = exp(obj.alpha*out); 
             p = p./sum(p);
-            p = (p-sum(p.*out,4)).*sum(target,4) + sum(target.*out,4) - target;
+            p = (p-sum(p.*out)).*sum(target) + sum(target.*out) - target;
             gradient = p*obj.alpha*2./I;
         end
     end

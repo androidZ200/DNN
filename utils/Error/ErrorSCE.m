@@ -13,13 +13,13 @@ classdef ErrorSCE < ErrorFunction
 
         function error = get_error(obj,out,target)
             p = exp(out*obj.alpha);
-            error = -sum(target.*log(-p./sum(p,4)),4);
+            error = -sum(target.*log(-p./sum(p)));
         end
         function gradient = get_gradient(obj,out,target)
             p = exp(obj.alpha*out);
-            S = sum(p,4);
+            S = sum(p);
             p = p./S;
-            gradient = -obj.alpha*(target - sum(target,4).*p);
+            gradient = -obj.alpha*(target - sum(target).*p);
         end
     end
 end

@@ -6,6 +6,10 @@ classdef (Abstract) GetOutput < handle
         lastW;
     end
 
+    methods (Abstract)
+        count_outputs();
+    end
+
     methods
         function obj = GetOutput(Mesh)
             obj.Mesh = Mesh;
