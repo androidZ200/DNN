@@ -1,16 +1,16 @@
 classdef GetMaskSum < GetMaskOutput
     methods
-        function obj = GetMaskSum(Mesh,Mask)
-            obj = obj@GetMaskOutput(Mesh,Mask);
+        function obj = GetMaskSum(Mesh, prev, Mask)
+            obj = obj@GetMaskOutput(Mesh, prev, Mask);
         end
         
-        function W_out = propagation(obj, W_in)
-            W_out = sum(propagation@GetMaskOutput(obj,W_in),[1 2]);
-            W_out = permute(W_out, [4 3 2 1]);
+        function score = get_output(obj, input)
+            score = sum(get_output@GetMaskOutput(obj,input),[1 2]);
+            score = permute(score, [4 3 2 1]);
         end
-        function W_out = back_propagation(obj, W_in)
-            W_in = permute(W_in, [4 3 2 1]);
-            W_out = back_propagation@GetOutput(obj,sum(obj.Mask.*W_in,4));
+        function set_error_field(obj, error)
+            error = permute(error, [4 3 2 1]);
+            set_error_field@GetOutput(obj,sum(obj.Mask.*error,4));
         end
     end
 end

@@ -1,5 +1,6 @@
 
-TestScores = zeros(OptSystem.Output.count_outputs(), size(Test,3), 'single'); % scores
+TestScores = zeros(Error.decoder.count_outputs(), size(Test,3), 'single'); % scores
+predictor.clear();
 
 if ~exist('max_batch', 'var'); max_batch = 40; end
 max_batch = min(size(Test,3), max_batch);
@@ -9,7 +10,8 @@ ndisp(['check result\n' waitbartext(60, -1) ' 0%']);
 for iter3=1:size(Test,3)/max_batch
     % running through the system
     TestScores(:,(iter3-1)*max_batch+1:iter3*max_batch) = ...
-        OptSystem.Forward(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
+        predictor.get_output(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
+    predictor.clear();
     
     rdisp(['check result\n' waitbartext(60, iter3/size(Test,3)*max_batch) ...
             ' ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%']);
@@ -18,9 +20,9 @@ rdisp(['check result takes time: ' num2str(toc(ttcr)) 's']);
 %%
 % error table
 [~, argmax] = max(TestScores);
-err_tabl = zeros(OptSystem.Output.count_outputs(), length(Labels), size(Test,3), 'single');
-err_tabl(argmax + OptSystem.Output.count_outputs()*(reshape(TestLabel,1,[])-1) + ...
-    OptSystem.Output.count_outputs()*length(Labels)*(0:(size(Test,3)-1))) = 1;
+err_tabl = zeros(Error.decoder.count_outputs(), length(Labels), size(Test,3), 'single');
+err_tabl(argmax + Error.decoder.count_outputs()*(reshape(TestLabel,1,[])-1) + ...
+    Error.decoder.count_outputs()*length(Labels)*(0:(size(Test,3)-1))) = 1;
 err_tabl = sum(err_tabl,3);
 
 % intensity table

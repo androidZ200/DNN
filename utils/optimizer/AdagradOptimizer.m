@@ -19,8 +19,5 @@ classdef AdagradOptimizer < Optimizer
         function reset(obj)
             obj.state(:) = 0;
         end
-        function obj = circshift(obj, N)
-            obj.state = circshift(obj.state, N);
-        end
     end
 end

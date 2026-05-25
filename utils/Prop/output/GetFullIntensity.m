@@ -4,22 +4,22 @@ classdef GetFullIntensity < GetOutput
     end
 
     methods
-        function obj = GetFullIntensity(Mesh,Mask)
-            obj = obj@GetOutput(Mesh);
-            if(nargin > 1)
+        function obj = GetFullIntensity(Mesh, prev, Mask)
+            obj = obj@GetOutput(Mesh, prev);
+            if(nargin > 2)
                 obj.Mask = GPUTest(Mask);
             else
                 obj.Mask = 1;
             end
         end
 
-        function W_out = propagation(obj, W_in)
-            W_out = propagation@GetOutput(obj,W_in).*obj.Mask;
-            W_out = reshape(W_out,[],size(W_in,3));
+        function score = get_output(obj, input)
+            input = get_output@GetOutput(obj,input).*obj.Mask;
+            score = reshape(input,[],size(input,3));
         end
-        function W_out = back_propagation(obj, W_in)
-            W_in = reshape(W_in,length(obj.Mesh.X),length(obj.Mesh.Y),size(W_in,2));
-            W_out = back_propagation@GetOutput(obj,W_in).*obj.Mask;
+        function set_error_field(obj, error)
+            error = reshape(error,length(obj.Mesh.X),length(obj.Mesh.Y),size(error,2));
+            set_error_field@GetOutput(obj, error.*obj.Mask);
         end
         function count = count_outputs(obj) 
             count = length(obj.Mesh.X)*length(obj.Mesh.Y);

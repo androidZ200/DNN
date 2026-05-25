@@ -1,35 +1,32 @@
+addpath(genpath(pwd));
 return;
 %% standart gradient training
 
 clear variables;
 
-pixel = 4e-6;
-spixel = pixel*2;
-lambda = 632.8e-9;
-N = 512;
-is_max = true;
-f = [0.01 0.01];
-m_prop = 'sinc';
-init;
-
-GetImage = create_GetImage_sinc(spixel,28,X{1},Y{1},k,0.01);
-
 mnist_digits;
-Full_width  = 0.6e-3;
-Full_height = 0.4e-3;
-G_size_x = 50e-6;
-G_size_y = G_size_x;
-mask10_1;
-% MASK(:,:,end+1) = ones(N) - (sum(MASK,3)>0);
+global is_gpu; is_gpu = true;
+lambda = 632.8e-9;
+f = 0.01;
+mesh = Mesh(4e-6, 512);
+mesh_inp = Mesh(8e-6, 28);
+opt = AdamFabric();
 
+dc = InputModulator(mesh_inp);
+dc = SincPropagator(dc, f, lambda);
+dc = PhaseDOE(mesh, dc, opt); doe1 = dc;
+dc = SincPropagator(dc, f, lambda);
+dc = GetMaskSum(mesh, dc, mask10_1(mesh,[1.2e-3, 0.9e-3],250e-6));
+dc = Predictor(dc); predictor = dc;
+dc = Normalization(dc);
+% Error = ErrorSCE(dc, 80);
+Error = ErrorMAE(dc);
 
-epoch = 4;
+epoch = 2;
 batch = 20;
-cycle = 2000;
+cycle = 6000;
 speed = 0.3;
 slowdown = 0.9995;
-LossFunc = 'SCE';
-optimizer = Adam_optimizer(N,is_gpu);
 training1;
 
 check_result;
@@ -38,35 +35,34 @@ check_result;
 
 clear variables;
 
-f = 0.25;
-pixel_doe = 8e-6;
-lambda = 532e-9;
-N = 1024;
-pixel = lambda*f/pixel_doe/N;
-spixel = 36e-6;
-is_max = true;
-init;
-
 mnist_digits;
-Full_width  = 5e-3;
-Full_height = 4e-3;
-G_size_x = 1e-3;
-G_size_y = 1e-3;
-mask10_1;
+global is_gpu; is_gpu = true;
+f = 0.25;
+lambda = 532e-9;
 
-GetImage = @(W)fft2(normalize_field(resizeimage(W,N(1,1),spixel,pixel(1,1))));
-FPropagations = { @(W)fft2(W)/N(1,1) };
-BPropagations = FPropagations;
+mesh_doe = Mesh(8e-6, 1024);
+mesh_lens = Mesh(3e-6, 4096);
+mesh_inp = Mesh(36e-6, 28);
 
-DOES{1} = exp(2i*pi*(rand(N(1,:))-0.5)/10);
+Input = GetInput(mesh_inp,@(W)normalize_field(GPUTest(W)));
+Layers = SequentialSystem({ ...
+    SincPropagator(f, lambda), ...
+    PhaseDOE(mesh_lens).set_phi(-2*pi/lambda/f*(mesh_lens.X.^2 + mesh_lens.Y.^2)), ...
+    SincPropagator(f, lambda), ...
+    PhaseDOE(mesh_doe, AdamFabric()), ...
+    SincPropagator(f, lambda), ...
+    PhaseDOE(mesh_lens).set_phi(-2*pi/lambda/f*(mesh_lens.X.^2 + mesh_lens.Y.^2)), ...
+    SincPropagator(f, lambda)});
+Output = GetMaskSum(mesh_doe,mask10_1(mesh_doe,[5e-3, 4e-3],1e-3));
+
+OptSystem = OpticalSystem(Input,Layers,Output);
 
 epoch = 4;
 batch = 20;
-cycle = 2000;
+cycle = 6000;
 speed = 0.3;
 slowdown = 0.9995;
-LossFunc = 'SCE';
-optimizer = Adam_optimizer(N,is_gpu);
+LossFunc = ErrorSCENorm(80);
 training1;
 
 check_result;

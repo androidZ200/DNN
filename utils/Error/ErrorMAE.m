@@ -1,9 +1,12 @@
-classdef ErrorMAE < ErrorFunction
+classdef ErrorMAE < Error_Decoder
     methods
-        function error = get_error(obj,out,target)
+        function obj = ErrorMAE(decoder)
+            obj = obj@Error_Decoder(decoder);
+        end
+        function error = error(~,out,target)
             error = sum(abs(out - target));
         end
-        function gradient = get_gradient(obj,out,target)
+        function gradient = gradient(~,out,target)
             p = out - target;
             gradient = p./abs(p);
             gradient(isnan(gradient)) = 0;

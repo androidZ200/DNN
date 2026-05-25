@@ -2,15 +2,14 @@
 
 if ~exist('Train', 'var'); error('Train database has not loaded'); end
 if ~exist('TrainLabel', 'var'); error('TrainLabel has not loaded'); end
-if ~exist('OptSystem', 'var'); error('OptSystem has not created'); end
+if ~exist('Error', 'var'); error('Error has not created'); end
 
 if ~exist('epoch', 'var'); epoch = 1; end
 if ~exist('speed', 'var'); error('speed is not define'); end
 if ~exist('slowdown', 'var'); slowdown = 1; end
 if ~exist('batch', 'var'); error('batch is not define'); end
 if ~exist('max_batch', 'var'); max_batch = batch; end
-if ~exist('LossFunc', 'var'); error('LossFunc is not define'); end
-if ~exist('target', 'var'); target = eye(OptSystem.Output.count_outputs(),length(unique(TrainLabel))); end
+if ~exist('target', 'var'); target = eye(Error.decoder.count_outputs(),length(unique(TrainLabel))); end
 if ~exist('cycle', 'var'); cycle = size(Train,3); end
 
 if ~exist('is_backup', 'var'); is_backup = false; end
@@ -39,25 +38,24 @@ for iter7=iter7+batch:batch:length(randind)
         num = reshape(TrainLabel(index),1,[]);
         
         % direct propagation
-        score = OptSystem.Forward(Train(:,:,index));
-        [~, maxind] = max(score);
-        accr = accr*0.95 + 0.05*mean(maxind == num);
-        % get gradient
-        loss = loss*0.95 + 0.05*mean(LossFunc.get_error(score, target(:,num)));
-        error = LossFunc.get_gradient(score, target(:,num));
-        % back propagation
-        gradient = cellsum(OptSystem.Backward(error), gradient);
+        error = Error.get_error(Train(:,:,index), target(:,num));
+        loss = loss*0.99 + 0.01*mean(error);
+        if ~isempty(predictor)
+            pred = predictor.get_prediction();
+            accr = accr*0.99 + 0.01*mean(pred == num);
+        end
+            
 
         
         % display info
         progres = (iter7+iter9+max_batch-1) / length(randind);
         first_line = ['[' num2str(progres*100,'%05.2f') '%]; loss = ' num2str(loss,'%.3e') ...
-            '; accr = ' num2str(accr*100,'%.2f') '%'];
-        rdisp([first_line '\n' waitbartext(50, progres) ' time = ' num2str(toc(tt1)) ';']);
+            '; accr = ' num2str(accr*100,'%.2f') '%; time = ' num2str(toc(tt1)) ';'];
+        rdisp([first_line '\n' waitbartext(50, progres)]);
     end
 
     % updating weights
-    OptSystem.Step(gradient,speed);
+    Error.minimize(speed);
     speed = speed*slowdown;
     
     % backup

@@ -6,42 +6,51 @@ classdef PhaseDOE < DOE
     end
     properties
         phi;
+        mask;
+        optimizer;
     end
 
     methods
-        function obj = PhaseDOE(Mesh, optimizer_fabric)
-            if nargin < 2
-                optimizer_fabric = [];
+        function obj = PhaseDOE(Mesh, prev, optimizer_fabric)
+            obj = obj@DOE(Mesh, prev);
+            if nargin < 3
+                obj.optimizer = [];
+                obj.mask = 0;
+            else
+                obj.optimizer = optimizer_fabric.generate(Mesh);
+                obj.mask = 1;
             end
-            obj = obj@DOE(Mesh, optimizer_fabric);
             obj.phi = GPUTest(zeros(size(Mesh)));
         end
 
         function obj = set_phi(obj, Phi)
             obj.phi = Phi;
         end
-        function gradient = get_gradient(obj)
-            gradient = -imag(obj.get_error());
+
+        function gradient = get_gradient(~, error)
+            gradient = -imag(error);
         end
-        function obj = circshift(obj,N)
-            obj.Tensor = circshift(obj.phi, N);
-            obj.Mask = circshift(obj.Train_Mask, N);
-            if ~isempty(obj.optimizer)
-                obj.optimizer = circshift(obj.optimizer, N);
-            end
+
+        function is = is_trainable(obj)
+            is = sum(obj.mask, "all") > 0;
         end
-        function obj = imagesc(obj)
-            imagesc(obj.Mesh.X, obj.Mesh.Y, angle(get_field(obj)), [-pi pi]);
-            
+
+        function imag = imagesc(obj)
+            im = imagesc(obj.mesh.X, obj.mesh.Y, angle(get_transmission_function(obj)), [-pi pi]);
             colormap(obj.ssau); colorbar;
             axis square;
+            if nargout > 0
+                imag = im;
+            end
         end
-        function Field = get_field(obj)
+
+        function Field = get_transmission_function(obj)
             Field = exp(1i*obj.phi);
         end
-        function step(obj, gradient, speed)
+
+        function make_gradient_step(obj, speed)
             if obj.is_trainable()
-                obj.phi = obj.phi + obj.preparing_gradient(gradient,speed);
+                obj.phi = obj.phi - speed * obj.optimizer.optimize(obj.Gradient);
             end
         end
     end

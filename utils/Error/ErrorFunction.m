@@ -1,7 +1,7 @@
-classdef (Abstract) ErrorFunction
+classdef (Abstract) ErrorFunction < handle
     methods (Abstract)
-        error = get_error(out, target);
-        gradient = get_gradient(out, target);
+        error = get_error(input, target);
+        minimize(speed);
     end
 end
 

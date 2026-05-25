@@ -10,26 +10,18 @@ classdef SincPropagator < FreePropagator
     end
 
     methods
-        function obj = SincPropagator(distance, wavelength)
+        function obj = SincPropagator(prev, distance, wavelength)
+            obj = obj@FreePropagator(prev);
             obj.distance = distance;
             obj.wavelength = wavelength;
         end
 
-        function init(obj, Before_Mesh, After_Mesh)
-            if isa(Before_Mesh, 'Prop') || isa(Before_Mesh, 'GetInput')
-                obj.mesh_in = Before_Mesh.output_mesh();
-            elseif isa(Before_Mesh, 'Mesh')
-                obj.mesh_in = Before_Mesh;
-            else
-                error('before is not propagator or mesh'); 
+        function init(obj)
+            if isempty(obj.prev_node) || isempty(obj.next_node)
+                return;
             end
-            if isa(After_Mesh, 'Prop') || isa(After_Mesh, 'GetOutput')
-                obj.mesh_out = After_Mesh.input_mesh();
-            elseif isa(Before_Mesh, 'Mesh')
-                obj.mesh_out = After_Mesh;
-            else
-                error('after is not propagator or mesh'); 
-            end
+            obj.mesh_in = obj.prev_node.output_mesh();
+            obj.mesh_out = obj.next_node.input_mesh();
 
             if ~isempty(obj.mesh_in.Y) && ~isempty(obj.mesh_out.Y)
                 obj.Left = obj.matrix_sinc(obj.mesh_in.Y, obj.mesh_out.Y, obj.distance, 2*pi/obj.wavelength);
@@ -54,11 +46,13 @@ classdef SincPropagator < FreePropagator
             end
         end
 
-        function W = propagation(obj, W)
-            W = pagemtimes(obj.Left, pagemtimes(W, obj.Right));
+        function field = get_field(obj, input)
+            field = obj.prev_node.get_field(input);
+            field = Field(obj.mesh_out, pagemtimes(obj.Left, pagemtimes(field.CA, obj.Right)));
         end
-        function W = back_propagation(obj, W)
-            W = pagemtimes(obj.Rev_Left, pagemtimes(W, obj.Rev_Right));
+        function set_error_field(obj, error)
+            error = Field(obj.mesh_in, pagemtimes(obj.Rev_Left, pagemtimes(error.CA, obj.Rev_Right)));
+            obj.prev_node.set_error_field(error);
         end
         function mesh = input_mesh(obj)
             if ~isempty(obj.mesh_in)

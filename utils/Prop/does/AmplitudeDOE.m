@@ -1,14 +1,20 @@
 classdef AmplitudeDOE < DOE
     properties
         theta;
+        mask;
+        optimizer;
     end
 
     methods
-        function obj = AmplitudeDOE(Mesh, optimizer_fabric)
-            if nargin < 2
-                optimizer_fabric = [];
+        function obj = AmplitudeDOE(Mesh, prev, optimizer_fabric)
+            obj = obj@DOE(Mesh, prev);
+            if nargin < 3
+                obj.optimizer = [];
+                obj.mask = 0;
+            else
+                obj.optimizer = optimizer_fabric.generate(Mesh);
+                obj.mask = 1;
             end
-            obj = obj@DOE(Mesh, optimizer_fabric);
             obj.theta = GPUTest(zeros(size(Mesh)) - log(1/0.99 - 1));
         end
 
@@ -17,28 +23,32 @@ classdef AmplitudeDOE < DOE
             Amp(Amp <= 0) = eps;
             obj.theta = -log(1./Amp - 1);
         end
-        function gradient = get_gradient(obj)
+
+        function gradient = get_gradient(obj, error)
             sig = obj.sigmoid(obj.theta);
-            gradient = real(obj.get_error()).*sig.*(1 - sig);
+            gradient = real(error).*sig.*(1 - sig);
         end
-        function obj = circshift(obj,N)
-            obj.theta = circshift(obj.theta, N);
-            obj.Train_Mask = circshift(obj.Train_Mask, N);
-            if ~isempty(obj.optimizer)
-                obj.optimizer = circshift(obj.optimizer, N);
-            end
+
+        function is = is_trainable(obj)
+            is = sum(obj.mask, "all") > 0;
         end
-        function obj = imagesc(obj)
-            imagesc(obj.Mesh.X, obj.Mesh.Y, get_field(obj), [0 1]);
+
+        function imag = imagesc(obj)
+            im = imagesc(obj.mesh.X, obj.mesh.Y, get_transmission_function(obj), [0 1]);
             colormap(gray); colorbar;
             axis square;
+            if nargout > 0
+                imag = im;
+            end
         end
-        function Field = get_field(obj)
+
+        function Field = get_transmission_function(obj)
             Field = obj.sigmoid(obj.theta);
         end
-        function step(obj, gradient, speed)
+
+        function make_gradient_step(obj, speed)
             if obj.is_trainable()
-                obj.theta = obj.theta + obj.preparing_gradient(gradient,speed);
+                obj.theta = obj.theta - speed * obj.optimizer.optimize(obj.Gradient);
             end
         end
     end

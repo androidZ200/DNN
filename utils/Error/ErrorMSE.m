@@ -1,9 +1,12 @@
-classdef ErrorMSE < ErrorFunction
+classdef ErrorMSE < Error_Decoder
     methods
-        function error = get_error(obj,out,target)
+        function obj = ErrorMSE(decoder)
+            obj = obj@Error_Decoder(decoder);
+        end
+        function error = error(~,out,target)
             error = sum((out - target).^2);
         end
-        function gradient = get_gradient(obj,out,target)
+        function gradient = gradient(~,out,target)
             gradient = 2*(out - target);
         end
     end

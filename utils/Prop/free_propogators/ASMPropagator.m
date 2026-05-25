@@ -5,26 +5,18 @@ classdef ASMPropagator < FreePropagator
     end
 
     methods
-        function obj = ASMPropagator(distance, wavelength)
+        function obj = ASMPropagator(prev, distance, wavelength)
+            obj = obj@FreePropagator(prev);
             obj.distance = distance;
             obj.wavelength = wavelength;
         end
 
-        function init(obj, Before_Mesh, After_Mesh)
-            if isa(Before_Mesh, 'Prop') || isa(Before_Mesh, 'GetInput')
-                mesh_in = Before_Mesh.output_mesh();
-            elseif isa(Before_Mesh, 'Mesh')
-                mesh_in = Before_Mesh;
-            else
-                error('before is not propagator or mesh'); 
+        function init(obj)
+            if isempty(obj.prev_node) || isempty(obj.next_node)
+                return;
             end
-            if isa(After_Mesh, 'Prop') || isa(After_Mesh, 'GetOutput')
-                mesh_out = After_Mesh.input_mesh();
-            elseif isa(Before_Mesh, 'Mesh')
-                mesh_out = After_Mesh;
-            else
-                error('after is not propagator or mesh'); 
-            end
+            mesh_in = obj.prev_node.output_mesh();
+            mesh_out = obj.next_node.input_mesh();
 
             ky = 0; kx = 0; Ny = 0; Nx = 0;
             if ~isempty(mesh_in.Y) && ~isempty(mesh_out.Y)
@@ -47,11 +39,13 @@ classdef ASMPropagator < FreePropagator
             obj.U = exp(1i*obj.distance.*single(sqrt((2*pi/obj.wavelength).^2 - T)));
         end
 
-        function W = propagation(obj, W)
-            W = ifft2(fft2(W).*obj.U);
+        function field = get_field(obj, input)
+            field = obj.prev_node.get_field(input);
+            field = Field(obj.mesh, ifft2(fft2(field.CA).*obj.U));
         end
-        function W = back_propagation(obj, W)
-            W = obj.propagation(W);
+        function set_error_field(obj, error)
+            error = Field(obj.mesh, ifft2(fft2(error.CA).*obj.U));
+            obj.prev_node.set_error_field(error);
         end
         function mesh = input_mesh(obj)
             if ~isempty(obj.mesh)

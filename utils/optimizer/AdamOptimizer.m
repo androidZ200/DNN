@@ -31,9 +31,5 @@ classdef AdamOptimizer < Optimizer
             obj.state_v(:) = 0;
             obj.state_a(:) = 0;
         end
-        function obj = circshift(obj, N)
-            obj.state_v = circshift(obj.state_v, N);
-            obj.state_a = circshift(obj.state_a, N);
-        end
     end
 end

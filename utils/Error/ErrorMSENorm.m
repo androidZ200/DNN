@@ -1,10 +1,13 @@
-classdef ErrorMSENorm < ErrorFunction
+classdef ErrorMSENorm < Error_Decoder
     methods
-        function error = get_error(~,out,target)
+        function obj = ErrorMSENorm(decoder)
+            obj = obj@Error_Decoder(decoder);
+        end
+        function error = error(~,out,target)
             I = sum(out);
             error = sum((out./I - target).^2);
         end
-        function gradient = get_gradient(~,out,target)
+        function gradient = gradient(~,out,target)
                 I = sum(out);
                 out = out./I;
                 p = out - target;
