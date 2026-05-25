@@ -1,4 +1,4 @@
-classdef Normalization < Decoder
+classdef Normalization < Decoder & Predictor
     properties (Access=private)
         input;
     end
@@ -12,6 +12,9 @@ classdef Normalization < Decoder
             obj.decoder = decoder;
         end
 
+        function pred = get_prediction(obj)
+            [~,pred] = max(obj.input,[],1);
+        end
         function score = get_output(obj, input)
             obj.input = obj.decoder.get_output(input);
             score = obj.input./sum(obj.input);

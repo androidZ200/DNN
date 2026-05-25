@@ -7,6 +7,7 @@ classdef GetMaskSum < GetMaskOutput
         function score = get_output(obj, input)
             score = sum(get_output@GetMaskOutput(obj,input),[1 2]);
             score = permute(score, [4 3 2 1]);
+            obj.lastScore = score;
         end
         function set_error_field(obj, error)
             error = permute(error, [4 3 2 1]);

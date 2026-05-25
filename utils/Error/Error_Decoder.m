@@ -1,4 +1,4 @@
-classdef (Abstract) Error_Decoder < ErrorFunction
+classdef (Abstract) Error_Decoder < ErrorFunction & Predictor
     properties (SetAccess=protected)
         decoder;
     end
@@ -18,6 +18,9 @@ classdef (Abstract) Error_Decoder < ErrorFunction
             obj.decoder = decoder;
         end
         
+        function pred = get_prediction(obj)
+            [~,pred] = max(obj.last_scores,[],1);
+        end
         function error = get_error(obj, input, target)
             obj.last_target = target;
             obj.last_scores = obj.decoder.get_output(input);

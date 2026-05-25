@@ -24,6 +24,7 @@ tt1 = tic;
 tt_backup = tic;
 last_backup_time = toc(tt_backup);
 loss = 0; accr = 0;
+accrline = [];
 ndisp();
 
 randind = [];
@@ -40,9 +41,10 @@ for iter7=iter7+batch:batch:length(randind)
         % direct propagation
         error = Error.get_error(Train(:,:,index), target(:,num));
         loss = loss*0.99 + 0.01*mean(error);
-        if ~isempty(predictor)
+        if exist('predictor', 'var') && isa(predictor, "Predictor")
             pred = predictor.get_prediction();
             accr = accr*0.99 + 0.01*mean(pred == num);
+            accrline = ['; accr = ' num2str(accr*100,'%.2f') '%'];
         end
             
 
@@ -50,7 +52,7 @@ for iter7=iter7+batch:batch:length(randind)
         % display info
         progres = (iter7+iter9+max_batch-1) / length(randind);
         first_line = ['[' num2str(progres*100,'%05.2f') '%]; loss = ' num2str(loss,'%.3e') ...
-            '; accr = ' num2str(accr*100,'%.2f') '%; time = ' num2str(toc(tt1)) ';'];
+            accrline '; time = ' num2str(toc(tt1)) ';'];
         rdisp([first_line '\n' waitbartext(50, progres)]);
     end
 
@@ -74,6 +76,6 @@ end
 
 %% clearing unnecessary variables
 
-clearvars epoch speed slowdown batch max_batch LossFunc target cycle is_backup backup_time tt1 ...
+clearvars epoch speed slowdown batch max_batch target cycle is_backup backup_time tt1 ...
     tt_backup last_backup_time loss accr randind iter8 iter7 gradient iter9 index num score ...
-    maxind error progres first_line;
+    maxind error progres first_line accrline;
