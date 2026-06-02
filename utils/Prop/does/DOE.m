@@ -3,6 +3,7 @@ classdef (Abstract) DOE < Prop
         mesh Mesh;
         next_node;
         prev_node;
+        type;
     end
     properties (Access=protected)
         Input_field;
@@ -13,13 +14,15 @@ classdef (Abstract) DOE < Prop
         get_transmission_function();
         is_trainable();
         get_gradient(error);
-        make_gradient_step(speed);
+        make_gradient_step(gradient, speed);
     end
 
     methods
-        function obj = DOE(Mesh, prev)
+        function obj = DOE(prev, Mesh, type)
             obj.mesh = Mesh;
             obj.set_prev_node(prev);
+            mustBeA(type, "TypeDOE");
+            obj.type = type;
         end
 
         function W = get_field(obj, input)
@@ -35,10 +38,7 @@ classdef (Abstract) DOE < Prop
         end
 
         function set_error_field(obj, error)
-            need_back = obj.prev_node.need_error_field();
-            if need_back || obj.is_trainable()
-                error = error.CA.*obj.get_transmission_function();
-            end
+            error = error.CA.*obj.get_transmission_function();
             if obj.is_trainable()
                 grad = obj.get_gradient(error.*obj.Input_field.CA);
                 grad = sum(grad,setdiff(find(size(grad) > 1), [1 2]));
@@ -48,7 +48,7 @@ classdef (Abstract) DOE < Prop
                     obj.Gradient = obj.Gradient + grad;
                 end
             end
-            if need_back
+            if obj.prev_node.need_error_field()
                 obj.prev_node.set_error_field(Field(obj.mesh, error));
             end
         end
@@ -90,7 +90,7 @@ classdef (Abstract) DOE < Prop
         end
 
         function gradient_step(obj, speed)
-            obj.make_gradient_step(speed);
+            obj.make_gradient_step(obj.Gradient, speed);
             obj.prev_node.gradient_step(speed);
         end
     end
