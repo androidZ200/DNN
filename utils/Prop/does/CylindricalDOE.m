@@ -1,4 +1,4 @@
-classdef CylindricalDOE < DOE
+classdef CylindricalDOE < DOE & MatrixPropagator
     properties (SetAccess=private)
         data;
         mask;
@@ -26,12 +26,15 @@ classdef CylindricalDOE < DOE
         end
 
         function obj = set_data(obj, data)
-            obj.data = data;
+            if ~isequal(size(data), size(obj.data))
+                error("the sizes of the arrays do not match");
+            end
+            obj.data = GPUTest(data);
         end
 
         function gradient = get_gradient(obj, error)
             gradient = obj.type.get_gradient(error, obj.data);
-            gradient = sum(gradient, find(size(obj.data)==1));
+            gradient = mean(gradient, find(size(obj.data)==1));
         end
 
         function is = is_trainable(obj)
@@ -46,6 +49,27 @@ classdef CylindricalDOE < DOE
             if obj.is_trainable()
                 obj.data = obj.data - speed * obj.optimizer.optimize(gradient);
             end
+        end
+
+        function M = get_left_f(obj)
+            if size(obj.data,1) == 1
+                M = eye(obj.size(1));
+            else
+                M = diag(obj.type.get_transmission_function(obj.data));
+            end
+        end
+        function M = get_right_f(obj)
+            if size(obj.data,1) == 1
+                M = diag(obj.type.get_transmission_function(obj.data));
+            else
+                M = eye(obj.size(2));
+            end
+        end
+        function M = get_left_b(obj)
+            M = obj.get_left_f();
+        end
+        function M = get_right_b(obj)
+            M = obj.get_right_f();
         end
 
         function imag = imagesc(obj)

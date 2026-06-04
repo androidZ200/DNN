@@ -19,7 +19,10 @@ classdef FullDOE < DOE
         end
 
         function obj = set_data(obj, data)
-            obj.data = data;
+            if ~isequal(size(data), size(obj.data))
+                error("the sizes of the arrays do not match");
+            end
+            obj.data = GPUTest(data);
         end
 
         function gradient = get_gradient(obj, error)

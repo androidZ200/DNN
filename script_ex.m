@@ -11,16 +11,16 @@ f = 0.01;
 mesh = Mesh(4e-6, 512);
 mesh_inp = Mesh(8e-6, 28);
 opt = AdamFabric();
+MASK = mask10_1(mesh,[1.2e-3, 0.9e-3],250e-6);
 
-dc = InputModulator(mesh_inp);
+dc = InputModulator(mesh_inp, @(W)Field(mesh_inp,normalize_field(W)));
 dc = SincPropagator(dc, f, lambda);
-dc = PhaseDOE(mesh, dc, opt); doe1 = dc;
-dc = SincPropagator(dc, f, lambda);
-dc = GetMaskSum(mesh, dc, mask10_1(mesh,[1.2e-3, 0.9e-3],250e-6));
-dc = Predictor(dc); predictor = dc;
-dc = Normalization(dc);
-% Error = ErrorSCE(dc, 80);
-Error = ErrorMAE(dc);
+dc = FullDOE(dc, mesh, PhaseDOE(), opt); doe = dc;
+dc = ASMPropagator(dc, f, lambda);
+dc = GetMaskSum(mesh, dc, MASK); decoder = dc;
+dc = Normalization(dc); 
+Error = ErrorSCE(dc, 80);
+predictor = Error;
 
 epoch = 2;
 batch = 20;
@@ -40,29 +40,37 @@ global is_gpu; is_gpu = true;
 f = 0.25;
 lambda = 532e-9;
 
-mesh_doe = Mesh(8e-6, 1024);
+mesh_doe = Mesh(16e-6, 512);
 mesh_lens = Mesh(3e-6, 4096);
 mesh_inp = Mesh(36e-6, 28);
+MASK = mask10_1(mesh_doe,[5e-3, 4e-3],1e-3);
 
-Input = GetInput(mesh_inp,@(W)normalize_field(GPUTest(W)));
-Layers = SequentialSystem({ ...
-    SincPropagator(f, lambda), ...
-    PhaseDOE(mesh_lens).set_phi(-2*pi/lambda/f*(mesh_lens.X.^2 + mesh_lens.Y.^2)), ...
-    SincPropagator(f, lambda), ...
-    PhaseDOE(mesh_doe, AdamFabric()), ...
-    SincPropagator(f, lambda), ...
-    PhaseDOE(mesh_lens).set_phi(-2*pi/lambda/f*(mesh_lens.X.^2 + mesh_lens.Y.^2)), ...
-    SincPropagator(f, lambda)});
-Output = GetMaskSum(mesh_doe,mask10_1(mesh_doe,[5e-3, 4e-3],1e-3));
+dc = InputModulator(mesh_inp, @(W)Field(mesh_inp,normalize_field(W)));
 
-OptSystem = OpticalSystem(Input,Layers,Output);
+dc = CompiledMatrixPropagator(dc);
+dc.add_next(SincPropagator(dc, f, lambda));
+dc.add_next(CylindricalDOE(dc, mesh_lens, PhaseDOE(), "X").set_data(-2*pi/lambda/f/2*mesh_lens.X.^2));
+dc.add_next(CylindricalDOE(dc, mesh_lens, PhaseDOE(), "Y").set_data(-2*pi/lambda/f/2*mesh_lens.Y.^2));
+dc.add_next(SincPropagator(dc, f, lambda));
+
+dc = FullDOE(dc, mesh_doe, PhaseDOE(), AdamFabric()); doe = dc;
+
+dc = CompiledMatrixPropagator(dc);
+dc.add_next(SincPropagator(dc, f, lambda));
+dc.add_next(CylindricalDOE(dc, mesh_lens, PhaseDOE(), "X").set_data(-2*pi/lambda/f/2*mesh_lens.X.^2));
+dc.add_next(CylindricalDOE(dc, mesh_lens, PhaseDOE(), "Y").set_data(-2*pi/lambda/f/2*mesh_lens.Y.^2));
+dc.add_next(SincPropagator(dc, f, lambda));
+
+dc = GetMaskSum(mesh_doe, dc, MASK); decoder = dc;
+dc = Normalization(dc); 
+Error = ErrorSCE(dc, 80);
+predictor = Error;
 
 epoch = 4;
 batch = 20;
 cycle = 6000;
 speed = 0.3;
 slowdown = 0.9995;
-LossFunc = ErrorSCENorm(80);
 training1;
 
 check_result;

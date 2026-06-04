@@ -17,6 +17,10 @@ classdef GetFullIntensity < GetOutput
             input = get_output@GetOutput(obj,input).*obj.Mask;
             score = reshape(input,[],size(input,3));
         end
+        function I = intensity(obj, input)
+            out = get_output(obj,input);
+            I = reshape(out,length(obj.Mesh.X),length(obj.Mesh.Y),size(out,2));
+        end
         function set_error_field(obj, error)
             error = reshape(error,length(obj.Mesh.X),length(obj.Mesh.Y),size(error,2));
             set_error_field@GetOutput(obj, error.*obj.Mask);
