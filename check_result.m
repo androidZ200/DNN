@@ -15,7 +15,7 @@ for iter3=1:size(Test,3)/max_batch
         decoder.get_output(Test(:,:,(iter3-1)*max_batch+1:iter3*max_batch));
     decoder.clear();
     
-    rdisp(['check result\n' waitbartext(60, iter3/size(Test,3)*max_batch) ...
+    rdisp(['check result\n' waitbartext(50, iter3/size(Test,3)*max_batch) ...
             ' ' num2str(iter3*max_batch/size(Test,3)*100,'%.2f') '%']);
 end
 rdisp(['check result takes time: ' num2str(toc(ttcr)) 's']);
