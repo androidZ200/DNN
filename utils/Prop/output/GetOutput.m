@@ -29,12 +29,20 @@ classdef (Abstract) GetOutput < Decoder & Opt_Input
             obj.lastW = [];
             obj.prev_node.clear();
         end
-        function score = get_output(obj, input)
-            if isempty(obj.lastW)
+        function field = get_field(obj, input)
+            if nargin > 1
                 field = obj.prev_node.get_field(input);
                 obj.lastW = field;
+            elseif isempty(obj.lastW)
+                error("not enourgt input arguments");
             end
-            score = intensity(obj.lastW);
+            field = obj.lastW;
+        end
+        function int = intensity(obj, input)
+            int = intensity(obj.get_field(input));
+        end
+        function score = get_output(obj, input)
+            score = obj.intensity(input);
         end
         function set_error_field(obj, error)
             error = Field(obj.Mesh, 2*error.*conj(obj.lastW.CA));
