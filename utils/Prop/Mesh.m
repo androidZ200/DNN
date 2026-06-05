@@ -15,6 +15,13 @@ classdef Mesh < handle
             if N(2) > 1; obj.Y = GPUTest(single(linspace_m(-PN(2), PN(2), N(2)))); end
         end
 
+        function obj = offset(obj, off)
+            obj.X = obj.X + off(1);
+            if length(off) > 1
+                obj.Y = obj.Y + off(2);
+            end
+        end
+
         function sz = size(obj, N)
             if nargin < 2
                 sz = [length(obj.X) length(obj.Y)];
