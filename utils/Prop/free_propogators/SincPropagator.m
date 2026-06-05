@@ -23,25 +23,25 @@ classdef SincPropagator < FreePropagator & MatrixPropagator
             obj.mesh_in = obj.prev_node.output_mesh();
             obj.mesh_out = obj.next_node.input_mesh();
 
-            if ~isempty(obj.mesh_in.Y) && ~isempty(obj.mesh_out.Y)
-                obj.Mat_left_f = obj.matrix_sinc(obj.mesh_in.Y, obj.mesh_out.Y, obj.distance, 2*pi/obj.wavelength);
-                if isequal(obj.mesh_in.Y, obj.mesh_out.Y)
+            if ~isempty(obj.mesh_in.X) && ~isempty(obj.mesh_out.X)
+                obj.Mat_left_f = obj.matrix_sinc(obj.mesh_in.X, obj.mesh_out.X, obj.distance, 2*pi/obj.wavelength);
+                if isequal(obj.mesh_in.X, obj.mesh_out.X)
                     obj.Mat_left_b = obj.Mat_left_f;
                 else
-                    obj.Mat_left_b = obj.matrix_sinc(obj.mesh_out.Y, obj.mesh_in.Y, obj.distance, 2*pi/obj.wavelength);
+                    obj.Mat_left_b = obj.matrix_sinc(obj.mesh_out.X, obj.mesh_in.X, obj.distance, 2*pi/obj.wavelength);
                 end
             end
             
-            if ~isempty(obj.mesh_in.X) && ~isempty(obj.mesh_out.X)
+            if ~isempty(obj.mesh_in.Y) && ~isempty(obj.mesh_out.Y)
                 if isequal(obj.mesh_in.X, obj.mesh_in.Y) && isequal(obj.mesh_out.X, obj.mesh_out.Y)
                     obj.Mat_right_f = obj.Mat_left_f.';
                 else
-                    obj.Mat_right_f = obj.matrix_sinc(obj.mesh_in.X, obj.mesh_out.X, obj.distance, 2*pi/obj.wavelength).';
+                    obj.Mat_right_f = obj.matrix_sinc(obj.mesh_in.Y, obj.mesh_out.Y, obj.distance, 2*pi/obj.wavelength).';
                 end
-                if isequal(obj.mesh_in.X, obj.mesh_out.X)
+                if isequal(obj.mesh_in.Y, obj.mesh_out.Y)
                     obj.Mat_right_b = obj.Mat_right_f;
                 else
-                    obj.Mat_right_b = obj.matrix_sinc(obj.mesh_out.X, obj.mesh_in.X, obj.distance, 2*pi/obj.wavelength).';
+                    obj.Mat_right_b = obj.matrix_sinc(obj.mesh_out.Y, obj.mesh_in.Y, obj.distance, 2*pi/obj.wavelength).';
                 end
             end
         end
@@ -84,7 +84,7 @@ classdef SincPropagator < FreePropagator & MatrixPropagator
     end
 
     methods (Access = private, Static)
-        function U = matrix_sinc(Mesh_old, Mesh_new, f, k)
+        function U = matrix_sinc(Mesh_old, Mesh_new, z, k)
             Mesh_old = reshape(Mesh_old,1,[]);
             Mesh_new = reshape(Mesh_new,[],1);
         
@@ -98,7 +98,7 @@ classdef SincPropagator < FreePropagator & MatrixPropagator
             
                 bndW = 0.5/pixel_old;
                 sq2p = sqrt(2.0/pi);
-                sqzk = sqrt(2.0*f./k);
+                sqzk = sqrt(2.0*z./k);
                 xm  = Mesh_old - Mesh_new;
                 mu1 = -pi * sqzk * bndW - xm ./ sqzk;
                 mu2 = +pi * sqzk * bndW - xm ./ sqzk;
@@ -107,8 +107,8 @@ classdef SincPropagator < FreePropagator & MatrixPropagator
                 Smu2 = fresnelS(sq2p * mu2) / sq2p;
                 Cmu2 = fresnelC(sq2p * mu2) / sq2p;
             
-                U = (sqrt(pixel_new*pixel_old) / pi) ./ sqzk .* sqrt(exp(1i*k.*f))...
-                .* exp(0.5i * (xm.^2) .* k ./ f)...
+                U = (sqrt(pixel_new*pixel_old) / pi) ./ sqzk .* sqrt(exp(1i*k.*z))...
+                .* exp(0.5i * (xm.^2) .* k ./ z)...
                 .* (Cmu2 - Cmu1 - 1i.* (Smu2 - Smu1));
             else
                 U = 1;
