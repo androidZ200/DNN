@@ -11,12 +11,12 @@ classdef InputModulator < Encoder
             if nargin > 1
                 obj.Func = Func;
             else
-                obj.Func = @(W)Field(obj.Mesh,W);
+                obj.Func = @(W)W;
             end
         end
 
         function field = get_field(obj, input)
-            field = obj.Func(input);
+            field = Field(obj.Mesh, obj.Func(input));
         end
         function need = need_error_field(~)
             need = false;
