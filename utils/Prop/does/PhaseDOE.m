@@ -12,6 +12,9 @@ classdef PhaseDOE < TypeDOE
         function gradient = get_gradient(~, error, ~)
             gradient = -imag(error);
         end
+        function data = get_data_from(~, inp_data)
+            data = real(inp_data);
+        end
         function im = imagesc(obj, X, Y, data)
             im = imagesc(X, Y, angle(obj.get_transmission_function(data)), [-pi pi]);
             colormap(obj.ssau);

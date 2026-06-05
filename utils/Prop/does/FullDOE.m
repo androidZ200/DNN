@@ -22,7 +22,7 @@ classdef FullDOE < DOE
             if ~isequal(size(data), size(obj.data))
                 error("the sizes of the arrays do not match");
             end
-            obj.data = GPUTest(data);
+            obj.data = GPUTest(obj.type.get_data_from(data));
         end
 
         function gradient = get_gradient(obj, error)

@@ -7,6 +7,10 @@ classdef AmplitudeDOE < TypeDOE
             sig = obj.get_transmission_function(data);
             gradient = real(error).*sig.*(1 - sig);
         end
+        function data = get_data_from(~, inp_data)
+            data = real(inp_data);
+            data = -log(1./min(max(data, 1e-8), 1 - 1e-8) - 1);
+        end
         function im = imagesc(obj, X, Y, data)
             im = imagesc(X, Y, obj.get_transmission_function(data), [0 1]);
             colormap(gray);
