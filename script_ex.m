@@ -126,6 +126,7 @@ check_result;
 %% example image generation
 
 clear variables;
+global is_gpu; is_gpu = true;
 
 f = 0.15;
 lambda = 532e-9; k = 2*pi/lambda;
@@ -173,49 +174,31 @@ end
 %% 1-dimension image generation
 
 clear variables;
-
+global is_gpu; is_gpu = true;
 lambda = 532e-9;
 f = 0.2;
-N = [5000 1];
-pixel = [2e-6; 2*tand(5)*f(1)/N(end,1)];
-m_prop = 'sinc';
-init;
 
-Train = normalize_field(abs(X{1}) < 5e-3);
-Target = atan(X{2}*5e2)+pi/2;
+mesh_in = Mesh(2e-6, [5000 1]);
+mesh_out= Mesh(2*tand(5)*f/size(mesh_in,1), size(mesh_in));
+
+Train = normalize_field(abs(mesh_in.X) < 5e-3);
+TrainLabel = 1;
+Target = atan(mesh_out.X*5e2)+pi/2;
 Target = Target - min(Target);
 Target = Target/sum(Target);
 
+dc = InputModulator(mesh_in);
+dc = FullDOE(dc, mesh_in, PhaseDOE(), AdamFabric());
+dc = SincPropagator(dc, f, lambda);
+dc = GetFullIntensity(mesh_out, dc);
+Error = ErrorMSE(dc, GenerationTarget(Target));
+
 epoch = 100000;
-cycle = 1000;
+cycle = epoch/20;
 speed = 1e-2;
 slowdown = 0.99995;
-optimizer = Adam_optimizer(N,is_gpu);
-training2;
+training1;
 
-%% image function doe
-
-for iter=1:length(DOES)
-    figure;
-    imagesc(DOES{iter});
-    title(['DOE ' num2str(iter)]);
-end
-
-clearvars iter;
-
-%% outputs regions
-
-xx = [-1 -1 1 1 -1]*G_size_x/2;
-yy = [1 -1 -1 1 1]*G_size_y/2;
-
-hold on; grid on;
-for iter=1:size(MASK,3)
-    plot(xx+coords(iter,1), yy+coords(iter,2), '-k');
-    text(coords(iter,1), coords(iter,2), Labels{iter}, ...
-        'fontsize', 14, 'HorizontalAlignment', 'center');
-end
-xlim([X{end}(1) X{end}(end)]); ylim([X{end}(1) X{end}(end)]);
-axis ij;
-axis square;
-
-clearvars xx yy iter;
+plot(dc.intensity(Train));
+hold on;
+plot(Target);

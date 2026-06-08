@@ -7,7 +7,7 @@ if ~exist('Error', 'var'); error('Error has not created'); end
 if ~exist('epoch', 'var'); epoch = 1; end
 if ~exist('speed', 'var'); error('speed is not define'); end
 if ~exist('slowdown', 'var'); slowdown = 1; end
-if ~exist('batch', 'var'); error('batch is not define'); end
+if ~exist('batch', 'var'); batch = 1; end
 if ~exist('max_batch', 'var'); max_batch = batch; end
 if ~exist('cycle', 'var'); cycle = size(Train,3); end
 

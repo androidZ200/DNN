@@ -41,7 +41,10 @@ classdef (Abstract) DOE < Prop
             error = error.CA.*obj.get_transmission_function();
             if obj.is_trainable()
                 grad = obj.get_gradient(error.*obj.Input_field.CA);
-                grad = sum(grad,setdiff(find(size(grad) > 1), [1 2]));
+                sumdim = setdiff(find(size(grad) > 1), [1 2]);
+                if ~isempty(sumdim)
+                    grad = sum(grad,sumdim);
+                end
                 if isempty(obj.Gradient)
                     obj.Gradient = grad;
                 else
