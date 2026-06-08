@@ -45,8 +45,6 @@ for iter7=iter7+batch:batch:length(randind)
             accrline = ['; accr = ' num2str(accr*100,'%.2f') '%'];
         end
             
-
-        
         % display info
         progres = (iter7+iter9+max_batch-1) / length(randind);
         first_line = ['[' num2str(progres*100,'%05.2f') '%]; loss = ' num2str(loss,'%.3e') ...

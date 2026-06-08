@@ -9,7 +9,7 @@ classdef GenerationTarget < GetTarget
         end
         
         function target = get_target(obj, index)
-            if (size(obj.images,3)==1)
+            if (size(obj.images,2)==1)
                 target = obj.images;
             else
                 target = obj.images(:,index);

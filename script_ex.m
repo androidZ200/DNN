@@ -127,42 +127,47 @@ check_result;
 
 clear variables;
 
-pixel = 18e-6;
-N = 512;
-B = pixel*N/2;
-f = [0.15 0.15 0.15];
-m_prop = 'ASM';
-init;
-
+f = 0.15;
+lambda = 532e-9; k = 2*pi/lambda;
+mesh = Mesh(18e-6, 512);
+B = 18e-6*512/2;
 sigma = B/8;
 alpha = pi/180/10;
-Train(:,:,1) = exp(-(X{1}.^2 + Y{1}.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*X{1});
-Train(:,:,2) = exp(-(X{1}.^2 + Y{1}.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*X{1});
-Train(:,:,3) = exp(-(X{1}.^2 + Y{1}.^2)/2/sigma^2).*exp( 1i*k*sin(alpha)*Y{1});
-Train(:,:,4) = exp(-(X{1}.^2 + Y{1}.^2)/2/sigma^2).*exp(-1i*k*sin(alpha)*Y{1});
-Train = normalize_field(Train);
-Test = Train;
 
-Target(:,:,1) = ((X{end}.^2 + Y{end}.^2) < (B/4)^2).*((X{end}.^2 + Y{end}.^2) > (B/4.4)^2);
-Target(:,:,2) = (max(abs(X{end}), abs(Y{end})) < B/4).*(max(abs(X{end}), abs(Y{end})) > B/4.4);
-Target(:,:,3) = (max(abs(X{end}), abs(Y{end})) < B/4).*(min(abs(X{end}), abs(Y{end})) < B*0.05/4.4);
-Target(:,:,4) = (max(abs(X{end}), abs(Y{end})) < B/4).*(abs(abs(X{end}) - abs(Y{end})) <  B*0.07/4.4);
-Target = (normalize_field(Target)).^2;
+Amp = normalize_field(exp(-(mesh.X.^2 + mesh.Y.^2)/2/sigma^2));
+Train(:,:,1) = Amp.*exp( 1i*k*sin(alpha)*mesh.X);
+Train(:,:,2) = Amp.*exp(-1i*k*sin(alpha)*mesh.X);
+Train(:,:,3) = Amp.*exp( 1i*k*sin(alpha)*mesh.Y);
+Train(:,:,4) = Amp.*exp(-1i*k*sin(alpha)*mesh.Y);
+TrainLabel = 1:size(Train,3);
 
-epoch = 8000;
-batch = 4;
-cycle = 800;
+Target(:,:,1) = ((mesh.X.^2 + mesh.Y.^2) < (B/4)^2).*((mesh.X.^2 + mesh.Y.^2) > (B/4.4)^2);
+Target(:,:,2) = (max(abs(mesh.X), abs(mesh.Y)) < B/4).*(max(abs(mesh.X), abs(mesh.Y)) > B/4.4);
+Target(:,:,3) = (max(abs(mesh.X), abs(mesh.Y)) < B/4).*(min(abs(mesh.X), abs(mesh.Y)) < B*0.05/4.4);
+Target(:,:,4) = (max(abs(mesh.X), abs(mesh.Y)) < B/4).*(abs(abs(mesh.X) - abs(mesh.Y)) <  B*0.07/4.4);
+Target = normalize_field(Target).^2;
+
+dc = InputModulator(mesh, @(W)W);
+dc = ASMPropagator(dc, f, lambda);
+dc = FullDOE(dc, mesh, PhaseDOE(), AdamFabric());
+dc = ASMPropagator(dc, f, lambda);
+dc = FullDOE(dc, mesh, PhaseDOE(), AdamFabric());
+dc = ASMPropagator(dc, f, lambda);
+dc = FullDOE(dc, mesh, PhaseDOE(), AdamFabric());
+dc = ASMPropagator(dc, f, lambda);
+dc = GetFullIntensity(mesh, dc);
+Error = ErrorMSE(dc, GenerationTarget(Target));
+
+batch = size(Train,3);
+epoch = batch*2000;
+cycle = epoch*batch/10;
 speed = 1;
 slowdown = 0.9992;
-optimizer = Adam_optimizer(N,is_gpu);
-training2;
+training1;
 
-W = GetImage(Train);
-for iter8=1:length(DOES)
-    W = FPropagations{iter8}(DOES{iter8}.*W);
-end
 for iter=1:size(Train,3)
-    figure; imagesc(abs(W(:,:,iter)).^2);
+    figure;
+    imagesc(dc.intensity(Train(:,:,iter)));
 end
 
 %% 1-dimension image generation
