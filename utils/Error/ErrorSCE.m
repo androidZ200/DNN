@@ -3,8 +3,8 @@ classdef ErrorSCE < Error_Decoder
         alpha;
     end
     methods
-        function obj = ErrorSCE(decoder, alpha)
-            obj = obj@Error_Decoder(decoder);
+        function obj = ErrorSCE(decoder, target, alpha)
+            obj = obj@Error_Decoder(decoder, target);
             if nargin > 1
                 obj.alpha = alpha;
             else

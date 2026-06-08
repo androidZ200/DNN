@@ -9,7 +9,6 @@ if ~exist('speed', 'var'); error('speed is not define'); end
 if ~exist('slowdown', 'var'); slowdown = 1; end
 if ~exist('batch', 'var'); error('batch is not define'); end
 if ~exist('max_batch', 'var'); max_batch = batch; end
-if ~exist('target', 'var'); target = eye(Error.decoder.count_outputs(),length(unique(TrainLabel))); end
 if ~exist('cycle', 'var'); cycle = size(Train,3); end
 
 if ~exist('is_backup', 'var'); is_backup = false; end
@@ -17,7 +16,6 @@ if ~exist('backup_time', 'var') && is_backup; backup_time = 3600; end
 
 batch = min(batch, size(Train,3));
 max_batch = min(batch, max_batch);
-target = GPUTest(target);
 
 %% training
 tt1 = tic;
@@ -39,7 +37,7 @@ for iter7=iter7+batch:batch:length(randind)
         num = reshape(TrainLabel(index),1,[]);
         
         % direct propagation
-        error = Error.get_error(Train(:,:,index), target(:,num));
+        error = Error.get_error(Train(:,:,index), num);
         loss = loss*0.99 + 0.01*mean(error);
         if exist('predictor', 'var') && isa(predictor, "Predictor")
             pred = predictor.get_prediction();
@@ -76,6 +74,6 @@ end
 
 %% clearing unnecessary variables
 
-clearvars epoch speed slowdown batch max_batch target cycle is_backup backup_time tt1 ...
+clearvars epoch speed slowdown batch max_batch cycle is_backup backup_time tt1 ...
     tt_backup last_backup_time loss accr randind iter8 iter7 gradient iter9 index num score ...
     maxind error progres first_line accrline;

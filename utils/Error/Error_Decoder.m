@@ -1,6 +1,7 @@
 classdef (Abstract) Error_Decoder < ErrorFunction & Predictor
     properties (SetAccess=protected)
         decoder;
+        target;
     end
     properties (Access=protected)
         last_scores;
@@ -13,16 +14,18 @@ classdef (Abstract) Error_Decoder < ErrorFunction & Predictor
     end
     
     methods
-        function obj = Error_Decoder(decoder)
+        function obj = Error_Decoder(decoder, target)
             mustBeA(decoder,"Decoder");
             obj.decoder = decoder;
+            mustBeA(target, "GetTarget");
+            obj.target = target;
         end
         
         function pred = get_prediction(obj)
             [~,pred] = max(obj.last_scores,[],1);
         end
-        function error = get_error(obj, input, target)
-            obj.last_target = target;
+        function error = get_error(obj, input, index)
+            obj.last_target = obj.target.get_target(index);
             obj.last_scores = obj.decoder.get_output(input);
             error = obj.error(obj.last_scores, obj.last_target);
         end

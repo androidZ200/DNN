@@ -1,7 +1,7 @@
 classdef ErrorMAE < Error_Decoder
     methods
-        function obj = ErrorMAE(decoder)
-            obj = obj@Error_Decoder(decoder);
+        function obj = ErrorMAE(decoder, target)
+            obj = obj@Error_Decoder(decoder, target);
         end
         function error = error(~,out,target)
             error = sum(abs(out - target));
