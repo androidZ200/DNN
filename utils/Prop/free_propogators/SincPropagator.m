@@ -116,3 +116,7 @@ classdef SincPropagator < FreePropagator & MatrixPropagator
         end
     end
 end
+
+% Cubillos, M. Numerical simulation of optical propagation using sinc approximation /
+% M. Cubillos, E. Jimenez // Journal of the Optical Society of America A. -
+% 2022. - Vol. 39, Issue 8. - P. 1403-1413. - DOI: https://doi.org/10.1364/JOSAA.461355

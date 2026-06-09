@@ -1,4 +1,4 @@
-classdef ErrorMSE < Error_Decoder
+classdef ErrorMSE < Error_Decoder % mean squared error
     methods
         function obj = ErrorMSE(decoder, target)
             obj = obj@Error_Decoder(decoder, target);

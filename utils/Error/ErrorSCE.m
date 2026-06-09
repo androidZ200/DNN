@@ -1,4 +1,4 @@
-classdef ErrorSCE < Error_Decoder
+classdef ErrorSCE < Error_Decoder % softmax cross entropy
     properties
         alpha;
     end

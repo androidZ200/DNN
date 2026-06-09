@@ -11,17 +11,20 @@ f = 0.01;
 mesh = Mesh(4e-6, 512);
 mesh_inp = Mesh(8e-6, 28);
 opt = AdamFabric();
-MASK = mask10_1(mesh,[1.2e-3, 0.9e-3],250e-6);
+MASK = mask10_1(mesh,[1.2e-3, 0.9e-3],100e-6);
 
 dc = InputModulator(mesh_inp, @(W)normalize_field(W));
 dc = SincPropagator(dc, f, lambda);
 dc = FullDOE(dc, mesh, PhaseDOE(), opt); doe = dc;
 dc = ASMPropagator(dc, f, lambda);
 dc = GetMaskSum(dc, mesh, MASK); decoder = dc;
-dc = NormalizationMAX(dc); predictor = dc;
-Error = ErrorSCE(dc, ClassificationTarget(dc.count_outputs(), length(unique(TrainLabel))), 10);
+dc = ScoreSpliter(dc);
+predictor = NormalizationMAX(dc);
+err1 = ErrorSCE(predictor, ClassificationTarget(dc.count_outputs(), length(unique(TrainLabel))), 20);
+err2 = ErrorPEF(dc);
+Error = ErrorSUM(err1, 0.9).add_new(err2, 0.1); % Error JSCE
 
-epoch = 2;
+epoch = 4;
 batch = 20;
 cycle = 6000;
 speed = 0.3;

@@ -1,4 +1,4 @@
-classdef ErrorMAE < Error_Decoder
+classdef ErrorMAE < Error_Decoder % mean absolute error
     methods
         function obj = ErrorMAE(decoder, target)
             obj = obj@Error_Decoder(decoder, target);
