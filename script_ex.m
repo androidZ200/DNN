@@ -18,8 +18,8 @@ dc = SincPropagator(dc, f, lambda);
 dc = FullDOE(dc, mesh, PhaseDOE(), opt); doe = dc;
 dc = ASMPropagator(dc, f, lambda);
 dc = GetMaskSum(mesh, dc, MASK); decoder = dc;
-dc = Normalization(dc); 
-Error = ErrorSCE(dc, ClassificationTarget(dc.count_outputs(), length(unique(TrainLabel))), 80);
+dc = NormalizationMAX(dc); 
+Error = ErrorSCE(dc, ClassificationTarget(dc.count_outputs(), length(unique(TrainLabel))), 10);
 predictor = Error;
 
 epoch = 2;
@@ -62,7 +62,7 @@ dc.add_next(CylindricalDOE(dc, mesh_lens, PhaseDOE(), "Y").set_data(-2*pi/lambda
 dc.add_next(SincPropagator(dc, f, lambda));
 
 dc = GetMaskSum(mesh_doe, dc, MASK); decoder = dc;
-dc = Normalization(dc); 
+dc = NormalizationSUM(dc); 
 Error = ErrorSCE(dc, ClassificationTarget(dc.count_outputs(), length(unique(TrainLabel))), 80);
 predictor = Error;
 
