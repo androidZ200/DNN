@@ -22,9 +22,9 @@ rdisp(['check result takes time: ' num2str(toc(ttcr)) 's']);
 %%
 % error table
 [~, argmax] = max(TestScores);
-err_tabl = zeros(Error.decoder.count_outputs(), length(Labels), size(Test,3), 'single');
-err_tabl(argmax + Error.decoder.count_outputs()*(reshape(TestLabel,1,[])-1) + ...
-    Error.decoder.count_outputs()*length(Labels)*(0:(size(Test,3)-1))) = 1;
+err_tabl = zeros(decoder.count_outputs(), length(Labels), size(Test,3), 'single');
+err_tabl(argmax + decoder.count_outputs()*(reshape(TestLabel,1,[])-1) + ...
+    decoder.count_outputs()*length(Labels)*(0:(size(Test,3)-1))) = 1;
 err_tabl = sum(err_tabl,3);
 
 % intensity table

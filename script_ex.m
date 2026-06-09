@@ -18,9 +18,8 @@ dc = SincPropagator(dc, f, lambda);
 dc = FullDOE(dc, mesh, PhaseDOE(), opt); doe = dc;
 dc = ASMPropagator(dc, f, lambda);
 dc = GetMaskSum(dc, mesh, MASK); decoder = dc;
-dc = NormalizationMAX(dc); 
+dc = NormalizationMAX(dc); predictor = dc;
 Error = ErrorSCE(dc, ClassificationTarget(dc.count_outputs(), length(unique(TrainLabel))), 10);
-predictor = Error;
 
 epoch = 2;
 batch = 20;

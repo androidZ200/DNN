@@ -15,15 +15,15 @@ yy = [1 -1 -1 1 1]*G_size_y/2;
 coords(:,1) = permute(sum(MASK.*decoder.Mesh.Y,[1 2])./sum(MASK,[1 2]), [3 2 1]);
 coords(:,2) = permute(sum(MASK.*decoder.Mesh.X,[1 2])./sum(MASK,[1 2]), [3 2 1]);
 
+% getting results
 index = randi(size(Test,3),Size,1);
+W = Test(:,:,index);
+decoder.clear();
+F = decoder.intensity(W);
+score = decoder.get_output(W);
+score = score./sum(score);
 fig = figure('position', [100 100 1500 400]);
 for iter10=1:Size
-    % getting results
-    W = Test(:,:,index);
-    F = decoder.intensity(W);
-    score = decoder.get_output(W);
-    score = score./sum(score);
-
     % drawing images
 	ax = subplot(1, 3, 1);
 	imagesc(abs(W(:,:,iter10))); colormap(ax, gray);
