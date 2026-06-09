@@ -1,7 +1,7 @@
 classdef GetMaskSum < GetMaskOutput
     methods
-        function obj = GetMaskSum(Mesh, prev, Mask)
-            obj = obj@GetMaskOutput(Mesh, prev, Mask);
+        function obj = GetMaskSum(prev, Mesh, Mask)
+            obj = obj@GetMaskOutput(prev, Mesh, Mask);
         end
         
         function score = get_output(obj, input)

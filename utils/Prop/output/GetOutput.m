@@ -8,7 +8,7 @@ classdef (Abstract) GetOutput < Decoder & Opt_Input
     end
 
     methods
-        function obj = GetOutput(Mesh, prev)
+        function obj = GetOutput(prev, Mesh)
             obj.Mesh = Mesh;
             obj.set_prev_node(prev);
         end

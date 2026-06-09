@@ -7,8 +7,8 @@ classdef (Abstract) GetMaskOutput < GetOutput & Predictor
     end
     
     methods
-        function obj = GetMaskOutput(Mesh, prev, Mask)
-            obj = obj@GetOutput(Mesh, prev);
+        function obj = GetMaskOutput(prev, Mesh, Mask)
+            obj = obj@GetOutput(prev, Mesh);
             obj.Mask = reshape(Mask, size(Mask,1), size(Mask,2), 1, []);
         end
         

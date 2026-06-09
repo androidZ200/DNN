@@ -4,8 +4,8 @@ classdef GetFullIntensity < GetOutput
     end
 
     methods
-        function obj = GetFullIntensity(Mesh, prev, Mask)
-            obj = obj@GetOutput(Mesh, prev);
+        function obj = GetFullIntensity(prev, Mesh, Mask)
+            obj = obj@GetOutput(prev, Mesh);
             if(nargin > 2)
                 obj.Mask = GPUTest(Mask);
             else

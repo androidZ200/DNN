@@ -3,8 +3,8 @@ classdef GetMaskMax < GetMaskOutput
         Maximum;
     end
     methods
-        function obj = GetMaskMax(Mesh, prev, Mask)
-            obj = obj@GetMaskOutput(Mesh, prev, Mask);
+        function obj = GetMaskMax(prev, Mesh, Mask)
+            obj = obj@GetMaskOutput(prev, Mesh, Mask);
         end
         
         function score = get_output(obj, input)
