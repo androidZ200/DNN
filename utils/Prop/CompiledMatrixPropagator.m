@@ -8,26 +8,19 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
         mesh_in = [];
         mesh_out = [];
 
-        next_node = [];
         prev_node = [];
     end
     properties(Access=private)
-        queue = [];
+        queue = {};
+        deep_count = 0;
     end
 
     methods
-        function obj = CompiledMatrixPropagator(prev, mesh)
-            if nargin > 1
-                mustBeA(mesh, "Mesh");
-                obj.mesh_in = mesh;
-                obj.mesh_out = mesh;
-
-                obj.set_prev_node(prev);
-            else
-                obj.set_prev_node(prev);
-                obj.mesh_in = obj.prev_node.output_mesh();
-                obj.mesh_out = obj.mesh_in;
-            end
+        function obj = CompiledMatrixPropagator(prev)
+            mustBeA(prev,"Encoder");
+            obj.prev_node = prev;
+            obj.mesh_in = prev.output_mesh();
+            obj.mesh_out = obj.mesh_in;
 
             obj.Mat_left_f = GPUTest(eye(size(obj.mesh_in,1)));
             obj.Mat_right_f = GPUTest(eye(size(obj.mesh_in,2)));
@@ -38,13 +31,14 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
         function obj = add_next(obj, node)
             mustBeA(node, "Prop");
             mustBeA(node, "MatrixPropagator");
-            if ~isequal(node, obj.next_node)
-                error("Node must be a next node");
-            end
-            obj.queue = node;
-            obj.next_node = [];
+            
+            obj.queue{end+1} = node;
+            obj.mesh_out = node.output_mesh();
         end
         function field = get_field(obj, input)
+            if ~isempty(obj.queue)
+                error("The queue is not empty");
+            end
             field = obj.prev_node.get_field(input);
             field = Field(obj.mesh_out, pagemtimes(obj.Mat_left_f, pagemtimes(field.CA, obj.Mat_right_f)));
         end
@@ -64,18 +58,20 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
         function gradient_step(obj, speed)
             obj.prev_node.gradient_step(speed);
         end
-        function set_next_node(obj, node)
-            if isequal(obj.next_node, node); return; end
-            mustBeA(node,"Opt_Input");
-            obj.next_node = node;
-            obj.pop();
-            node.set_prev_node(obj);
-        end
-        function set_prev_node(obj, node)
-            if isequal(obj.prev_node, node); return; end
-            mustBeA(node,"Encoder");
-            obj.prev_node = node;
-            node.set_next_node(obj);
+        function set_output_mesh(obj, mesh)
+            mustBeA(mesh,"Mesh");
+            obj.deep_count = obj.deep_count + 1;
+            if length(obj.queue) >= obj.deep_count
+                obj.queue{end - obj.deep_count + 1}.set_output_mesh(mesh);
+                obj.pop();
+            elseif isempty(obj.mesh_in)
+                obj.prev_node.set_output_mesh(mesh);
+                obj.mesh_in = mesh;
+            end
+            obj.deep_count = obj.deep_count - 1;
+            if obj.deep_count == 0
+                obj.mesh_out = mesh;
+            end
         end
         function clear(obj)
             obj.prev_node.clear();
@@ -96,17 +92,17 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
 
     methods (Access=private)
         function pop(obj)
-            if ~isempty(obj.queue)
-                obj.queue.set_next_node(obj.next_node);
-                node = obj.queue;
-                obj.queue = [];
-                obj.mesh_out = node.output_mesh();
-    
-                obj.Mat_left_f = node.get_left_f()*obj.Mat_left_f;
-                obj.Mat_right_f = obj.Mat_right_f*node.get_right_f();
-                obj.Mat_left_b = obj.Mat_left_b*node.get_left_b();
-                obj.Mat_right_b = node.get_right_b()*obj.Mat_right_b;
+            node = obj.queue{1};
+            if length(obj.queue) > 1
+                obj.queue = obj.queue(2:end);
+            else
+                obj.queue = {};
             end
+
+            obj.Mat_left_f = node.get_left_f()*obj.Mat_left_f;
+            obj.Mat_right_f = obj.Mat_right_f*node.get_right_f();
+            obj.Mat_left_b = obj.Mat_left_b*node.get_left_b();
+            obj.Mat_right_b = node.get_right_b()*obj.Mat_right_b;
         end
     end
 end

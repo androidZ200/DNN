@@ -9,34 +9,37 @@ classdef ASMPropagator < FreePropagator
             obj = obj@FreePropagator(prev);
             obj.distance = distance;
             obj.wavelength = wavelength;
+            
+            mesh = prev.output_mesh();
+            if ~isempty(mesh)
+                obj.init(mesh);
+            end
         end
 
-        function init(obj)
-            if isempty(obj.prev_node) || isempty(obj.next_node)
+        function init(obj, mesh)
+            if ~isempty(obj.mesh)
+                if ~isequal(obj.mesh, mesh)
+                    error('The Meshes dont match');
+                end
                 return;
+            else
+                obj.mesh = mesh;
             end
-            mesh_in = obj.prev_node.output_mesh();
-            mesh_out = obj.next_node.input_mesh();
 
             ky = 0; kx = 0; Ny = 0; Nx = 0;
-            if ~isempty(mesh_in.Y) && ~isempty(mesh_out.Y)
-                if ~isequal(mesh_in.Y, mesh_out.Y)
-                    error('grid Y is not equal');
-                end
-                Ny = length(mesh_in.Y); pixely = (mesh_in.Y(end) - mesh_in.Y(1))/(Ny-1);
+            if ~isempty(mesh.Y)
+                Ny = length(mesh.Y); pixely = (mesh.Y(end) - mesh.Y(1))/(Ny-1);
                 ky = linspace_l(-pi/pixely, pi/pixely, Ny).';
             end
-            if ~isempty(mesh_in.X) && ~isempty(mesh_out.X)
-                if ~isequal(mesh_in.X, mesh_out.X)
-                    error('grid X is not equal');
-                end
-                Nx = length(mesh_in.X); pixelx = (mesh_in.X(end) - mesh_in.X(1))/(Nx-1);
+            if ~isempty(mesh.X)
+                Nx = length(mesh.X); pixelx = (mesh.X(end) - mesh.X(1))/(Nx-1);
                 kx = linspace_l(-pi/pixelx, pi/pixelx, Nx);
             end
-            obj.mesh = mesh_in;
 
             T = circshift(kx.^2 + ky.^2, [Nx/2 Ny/2]);
             obj.U = exp(1i*obj.distance.*single(sqrt((2*pi/obj.wavelength).^2 - T)));
+
+            obj.prev_node.set_output_mesh(mesh);
         end
 
         function field = get_field(obj, input)
@@ -48,11 +51,7 @@ classdef ASMPropagator < FreePropagator
             obj.prev_node.set_error_field(error);
         end
         function mesh = input_mesh(obj)
-            if ~isempty(obj.mesh)
-                mesh = obj.mesh;
-            else
-                error('mesh does not initialize');
-            end
+            mesh = obj.mesh;
         end
         function mesh = output_mesh(obj)
             mesh = obj.input_mesh();

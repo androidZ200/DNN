@@ -1,7 +1,6 @@
 classdef (Abstract) DOE < Prop
     properties (SetAccess=protected)
         mesh Mesh;
-        next_node;
         prev_node;
         type;
     end
@@ -20,9 +19,11 @@ classdef (Abstract) DOE < Prop
     methods
         function obj = DOE(prev, Mesh, type)
             obj.mesh = Mesh;
-            obj.set_prev_node(prev);
+            mustBeA(prev, "Encoder");
+            obj.prev_node = prev;
             mustBeA(type, "TypeDOE");
             obj.type = type;
+            obj.prev_node.set_output_mesh(obj.mesh);
         end
 
         function W = get_field(obj, input)
@@ -63,19 +64,12 @@ classdef (Abstract) DOE < Prop
         function mesh = output_mesh(obj)
             mesh = obj.mesh;
         end
-        
-        function set_next_node(obj, node)
-            if isequal(obj.next_node, node); return; end
-            mustBeA(node,"Opt_Input");
-            obj.next_node = node;
-            node.set_prev_node(obj);
-        end
 
-        function set_prev_node(obj, node)
-            if isequal(obj.prev_node, node); return; end
-            mustBeA(node,"Encoder");
-            obj.prev_node = node;
-            node.set_next_node(obj);
+        function set_output_mesh(obj, mesh)
+            mustBeA(mesh, "Mesh");
+            if ~isequal(obj.mesh, mesh)
+                error('The Meshes dont match');
+            end
         end
 
         function clear(obj)

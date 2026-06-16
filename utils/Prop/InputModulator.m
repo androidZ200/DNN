@@ -2,7 +2,6 @@ classdef InputModulator < Encoder
     properties (SetAccess=private)
         Mesh Mesh;
         Func;
-        next_node;
     end
 
     methods
@@ -28,11 +27,11 @@ classdef InputModulator < Encoder
         function mesh = output_mesh(obj)
             mesh = obj.Mesh;
         end
-        function set_next_node(obj, node)
-            if isequal(obj.next_node, node); return; end
-            mustBeA(node,"Opt_Input");
-            obj.next_node = node;
-            obj.next_node.set_prev_node(obj);
+        function set_output_mesh(obj, mesh)
+            mustBeA(mesh, "Mesh");
+            if ~isequal(obj.Mesh, mesh)
+                error('The Meshes dont match');
+            end
         end
         function clear(~)
         end

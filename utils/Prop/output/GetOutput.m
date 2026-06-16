@@ -10,15 +10,11 @@ classdef (Abstract) GetOutput < Decoder & Opt_Input
     methods
         function obj = GetOutput(prev, Mesh)
             obj.Mesh = Mesh;
-            obj.set_prev_node(prev);
+            mustBeA(prev, "Encoder");
+            obj.prev_node = prev;
+            obj.prev_node.set_output_mesh(Mesh);
         end
 
-        function set_prev_node(obj, node)
-            if isequal(obj.prev_node, node); return; end
-            mustBeA(node,"Encoder");
-            obj.prev_node = node;
-            obj.prev_node.set_next_node(obj);
-        end
         function need = need_error_field(obj)
             need = obj.prev_node.need_error_field();
         end
