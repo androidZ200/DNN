@@ -25,6 +25,14 @@ classdef FullDOE < DOE
             obj.data = GPUTest(obj.type.get_data_from(data));
         end
 
+        function obj = set_mask(obj, mask)
+            if isequal(size(mask), size(obj.mesh)) || size(mask) == 1
+                obj.mask = GPUTest(mask);
+            else
+                error("the sizes of the arrays do not match");
+            end
+        end
+
         function gradient = get_gradient(obj, error)
             gradient = obj.type.get_gradient(error, obj.data);
         end
