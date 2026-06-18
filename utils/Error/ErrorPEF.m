@@ -1,33 +1,21 @@
-classdef ErrorPEF < ErrorFunction % power efficiency function
+classdef ErrorPEF < Error_Decoder % power efficiency function
     properties (SetAccess=private)
         InputEnergy = 1;
-        TargetEnergy;
-        decoder;
     end
     
     methods
         function obj = ErrorPEF(decoder, InputEnergy)
-            mustBeA(decoder,"Decoder");
-            obj.decoder = decoder;
+            obj@Error_Decoder(decoder, GenerationTarget(0));
             if nargin > 1
                 obj.InputEnergy = InputEnergy;
             end
         end
         
-        function error = get_error(obj, input, ~)
-            obj.TargetEnergy = sum(obj.decoder.get_output(input));
-            error = -log(obj.TargetEnergy./obj.InputEnergy);
+        function error = error(obj,out,~)
+            error = -log(sum(out)./obj.InputEnergy);
         end
-        function minimize(obj, speed, weight)
-            if obj.decoder.need_error_field()
-                gradient = -2*obj.InputEnergy./obj.TargetEnergy;
-                if nargin < 3
-                    weight = 1;
-                end
-                obj.decoder.set_error_field(gradient*weight);
-                obj.decoder.gradient_step(speed);
-            end
-            obj.decoder.clear();
+        function gradient = gradient(obj,out,~)
+            gradient = -2*obj.InputEnergy./sum(out);
         end
     end
 end

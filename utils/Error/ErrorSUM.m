@@ -26,11 +26,34 @@ classdef ErrorSUM < ErrorFunction
             end
         end
         function minimize(obj, speed, weight)
-            if nargin < 3
-                weight = 1;
+            if obj.need_error_field()
+                if nargin < 3
+                    weight = 1;
+                end
+                obj.set_error_field(weight);
+                obj.gradient_step(speed);
             end
+            obj.clear();
+        end
+        function need = need_error_field(obj)
+            need = false;
             for iter=1:length(obj.errors)
-                obj.errors{iter}.minimize(speed, weight*obj.weights(iter));
+                need = need || obj.errors{iter}.need_error_field();
+            end
+        end
+        function set_error_field(obj, error)
+            for iter=1:length(obj.errors)
+                obj.errors{iter}.set_error_field(error*obj.weights(iter));
+            end
+        end
+        function gradient_step(obj, speed)
+            for iter=1:length(obj.errors)
+                obj.errors{iter}.gradient_step(speed);
+            end
+        end
+        function clear(obj)
+            for iter=1:length(obj.errors)
+                obj.errors{iter}.clear();
             end
         end
     end

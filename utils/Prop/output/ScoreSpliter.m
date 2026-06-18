@@ -42,12 +42,13 @@ classdef ScoreSpliter < Decoder & Predictor
             end
         end
         function gradient_step(obj, speed)
-            if obj.count == 0
+            if ~isempty(obj.error)
                 obj.decoder.gradient_step(speed);
+                obj.error = [];
             end
         end
         function clear(obj)
-            if obj.count == 0
+            if ~isempty(obj.input)
                 obj.input = [];
                 obj.error = [];
                 obj.decoder.clear();

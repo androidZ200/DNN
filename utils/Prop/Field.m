@@ -39,7 +39,7 @@ classdef Field
             field = Field(obj.mesh, conj(obj.CA));
         end
         function im = imagesc(varargin)
-            h = imagesc(varargin{1}.mesh.X, varargin{1}.mesh.Y, varargin{1}.intensity(), varargin{2:end});
+            h = imagesc(varargin{1}.mesh.Y, varargin{1}.mesh.X, varargin{1}.intensity(), varargin{2:end});
             if nargout > 0
                 im = h;
             end
