@@ -21,7 +21,7 @@ max_batch = min(batch, max_batch);
 tt1 = tic;
 tt_backup = tic;
 last_backup_time = toc(tt_backup);
-loss = 0; accr = 0;
+loss = []; accr = [];
 accrline = [];
 ndisp();
 
@@ -38,16 +38,24 @@ for iter7=iter7+batch:batch:length(randind)
         
         % direct propagation
         error = Error.get_error(Train(:,:,index), num);
-        loss = loss*0.99 + 0.01*mean(error);
+        if isempty(loss)
+            loss = mean(error);
+        else
+            loss = loss*0.99 + 0.01*mean(error);
+        end
         if exist('predictor', 'var') && isa(predictor, "Predictor")
             pred = predictor.get_prediction();
-            accr = accr*0.99 + 0.01*mean(pred == num);
+            if isempty(accr)
+                accr = mean(pred == num);
+            else
+                accr = accr*0.99 + 0.01*mean(pred == num);
+            end
             accrline = ['; accr = ' num2str(accr*100,'%.2f') '%'];
         end
             
         % display info
         progres = (iter7+iter9+max_batch-1) / length(randind);
-        first_line = ['[' num2str(progres*100,'%05.2f') '%]; loss = ' num2str(loss,'%.3e') ...
+        first_line = ['[' num2str(progres*100,'%05.2f') '%]; loss = ' num2str(loss,'%.5e') ...
             accrline '; time = ' num2str(toc(tt1)) ';'];
         rdisp([first_line '\n' waitbartext(50, progres)]);
     end
