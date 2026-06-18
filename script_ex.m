@@ -102,7 +102,7 @@ Target(:,:,3) = (max(abs(mesh.X), abs(mesh.Y)) < B/4).*(min(abs(mesh.X), abs(mes
 Target(:,:,4) = (max(abs(mesh.X), abs(mesh.Y)) < B/4).*(abs(abs(mesh.X) - abs(mesh.Y)) <  B*0.07/4.4);
 Target = normalize_field(Target).^2;
 
-dc = InputModulator(mesh, @(W)W);
+dc = InputModulator(mesh);
 dc = ASMPropagator(dc, f, lambda);
 dc = FullDOE(dc, mesh, PhaseDOE(), AdamFabric());
 dc = ASMPropagator(dc, f, lambda);

@@ -51,25 +51,19 @@ classdef CylindricalDOE < DOE & MatrixPropagator
             end
         end
 
-        function M = get_left_f(obj)
+        function M = get_left(obj)
             if size(obj.data,1) == 1
                 M = eye(obj.size(1));
             else
                 M = diag(obj.type.get_transmission_function(obj.data));
             end
         end
-        function M = get_right_f(obj)
+        function M = get_right(obj)
             if size(obj.data,1) == 1
                 M = diag(obj.type.get_transmission_function(obj.data));
             else
                 M = eye(obj.size(2));
             end
-        end
-        function M = get_left_b(obj)
-            M = obj.get_left_f();
-        end
-        function M = get_right_b(obj)
-            M = obj.get_right_f();
         end
 
         function imag = imagesc(obj)

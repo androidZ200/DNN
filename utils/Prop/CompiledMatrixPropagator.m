@@ -1,9 +1,7 @@
 classdef CompiledMatrixPropagator < Prop & MatrixPropagator
     properties(SetAccess=private)
-        Mat_left_f = 1;
-        Mat_right_f = 1;
-        Mat_left_b = 1;
-        Mat_right_b = 1;
+        Mat_left = 1;
+        Mat_right = 1;
 
         mesh_in = [];
         mesh_out = [];
@@ -22,10 +20,8 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
             obj.mesh_in = prev.output_mesh();
             obj.mesh_out = obj.mesh_in;
 
-            obj.Mat_left_f = GPUTest(eye(size(obj.mesh_in,1)));
-            obj.Mat_right_f = GPUTest(eye(size(obj.mesh_in,2)));
-            obj.Mat_left_b = obj.Mat_left_f;
-            obj.Mat_right_b = obj.Mat_right_f;
+            obj.Mat_left = GPUTest(eye(size(obj.mesh_in,1)));
+            obj.Mat_right = GPUTest(eye(size(obj.mesh_in,2)));
         end
         
         function obj = add_next(obj, node)
@@ -40,10 +36,10 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
                 error("The queue is not empty");
             end
             field = obj.prev_node.get_field(input);
-            field = Field(obj.mesh_out, pagemtimes(obj.Mat_left_f, pagemtimes(field.CA, obj.Mat_right_f)));
+            field = Field(obj.mesh_out, obj.prop(obj.Mat_left, field.CA, obj.Mat_right));
         end
         function set_error_field(obj, error)
-            error = Field(obj.mesh_in, pagemtimes(obj.Mat_left_b, pagemtimes(error.CA, obj.Mat_right_b)));
+            error = Field(obj.mesh_in, obj.prop(obj.Mat_left.', error.CA, obj.Mat_right.'));
             obj.prev_node.set_error_field(error);
         end
         function mesh = input_mesh(obj)
@@ -76,17 +72,11 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
         function clear(obj)
             obj.prev_node.clear();
         end
-        function M = get_left_f(obj)
-            M = obj.Mat_left_f;
+        function M = get_left(obj)
+            M = obj.Mat_left;
         end
-        function M = get_right_f(obj)
-            M = obj.Mat_right_f;
-        end
-        function M = get_left_b(obj)
-            M = obj.Mat_left_b;
-        end
-        function M = get_right_b(obj)
-            M = obj.Mat_right_b;
+        function M = get_right(obj)
+            M = obj.Mat_right;
         end
     end
 
@@ -99,10 +89,8 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
                 obj.queue = {};
             end
 
-            obj.Mat_left_f = node.get_left_f()*obj.Mat_left_f;
-            obj.Mat_right_f = obj.Mat_right_f*node.get_right_f();
-            obj.Mat_left_b = obj.Mat_left_b*node.get_left_b();
-            obj.Mat_right_b = node.get_right_b()*obj.Mat_right_b;
+            obj.Mat_left = node.get_left_f()*obj.Mat_left;
+            obj.Mat_right = obj.Mat_right*node.get_right_f();
         end
     end
 end
