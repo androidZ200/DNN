@@ -4,8 +4,8 @@ classdef BeamSplitter < Prop
         mesh Mesh;
     end
     properties(Access=private)
-        Field;
-        Error;
+        field;
+        error;
         counter = 0;
     end
     
@@ -37,36 +37,36 @@ classdef BeamSplitter < Prop
             end
         end
         function field = get_field(obj, input)
-            if isempty(obj.Field)
-                obj.Field = obj.prev_node.get_field(input);
+            if isempty(obj.field)
+                obj.field = obj.prev_node.get_field(input);
             end
-            field = obj.Field;
+            field = obj.field;
             obj.counter = obj.counter + 1;
         end
         function need = need_error_field(obj)
             need = obj.prev_node.need_error_field();
         end
         function set_error_field(obj, error)
-            if isempty(obj.Error)
-                obj.Error = error;
+            if isempty(obj.error)
+                obj.error = error;
             else
-                obj.Error = obj.Error + error;
+                obj.error = obj.error + error;
             end
             obj.counter = obj.counter - 1;
             if obj.counter == 0
-                obj.prev_node.set_error_field(obj.Error);
+                obj.prev_node.set_error_field(obj.error);
             end
         end
         function gradient_step(obj, speed)
-            if ~isempty(obj.Error)
+            if ~isempty(obj.error)
                 obj.prev_node.gradient_step(speed);
-                obj.Error = [];
+                obj.error = [];
             end
         end
         function clear(obj)
-            if ~isempty(obj.Field)
-                obj.Error = [];
-                obj.Field = [];
+            if ~isempty(obj.field)
+                obj.error = [];
+                obj.field = [];
                 obj.counter = 0;
                 obj.prev_node.clear();
             end

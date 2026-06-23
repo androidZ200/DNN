@@ -8,9 +8,9 @@ classdef GetMaskMax < GetMaskOutput
         end
         
         function score = get_output(obj, input)
-            Field = get_output@GetMaskOutput(obj,input);
-            score = max(Field,[],[1 2]);
-            obj.Maximum = Field == score;
+            field = get_output@GetMaskOutput(obj,input);
+            score = max(field,[],[1 2]);
+            obj.Maximum = field == score;
             score = permute(score, [4 3 2 1]);
             obj.lastScore = score;
         end

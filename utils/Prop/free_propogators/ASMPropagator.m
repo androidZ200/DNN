@@ -9,7 +9,7 @@ classdef ASMPropagator < FreePropagator
             obj = obj@FreePropagator(prev);
             obj.distance = distance;
             obj.wavelength = wavelength;
-            
+
             mesh = prev.output_mesh();
             if ~isempty(mesh)
                 obj.init(mesh);
@@ -44,10 +44,10 @@ classdef ASMPropagator < FreePropagator
 
         function field = get_field(obj, input)
             field = obj.prev_node.get_field(input);
-            field = Field(obj.mesh, ifft2(fft2(field.CA).*obj.U));
+            field = Field(ifft2(fft2(field.CA).*obj.U));
         end
         function set_error_field(obj, error)
-            error = Field(obj.mesh, ifft2(fft2(error.CA).*obj.U));
+            error = Field(ifft2(fft2(error.CA).*obj.U));
             obj.prev_node.set_error_field(error);
         end
         function mesh = input_mesh(obj)

@@ -36,10 +36,10 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
                 error("The queue is not empty");
             end
             field = obj.prev_node.get_field(input);
-            field = Field(obj.mesh_out, obj.prop(obj.Mat_left, field.CA, obj.Mat_right));
+            field = Field(obj.prop(obj.Mat_left, field.CA, obj.Mat_right));
         end
         function set_error_field(obj, error)
-            error = Field(obj.mesh_in, obj.prop(obj.Mat_left.', error.CA, obj.Mat_right.'));
+            error = Field(obj.prop(obj.Mat_left.', error.CA, obj.Mat_right.'));
             obj.prev_node.set_error_field(error);
         end
         function mesh = input_mesh(obj)

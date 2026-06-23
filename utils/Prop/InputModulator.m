@@ -15,7 +15,7 @@ classdef InputModulator < Encoder
         end
 
         function field = get_field(obj, input)
-            field = Field(obj.Mesh, obj.Func(input));
+            field = Field(obj.Func(input));
         end
         function need = need_error_field(~)
             need = false;

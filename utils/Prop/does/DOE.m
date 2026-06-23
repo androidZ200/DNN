@@ -31,7 +31,7 @@ classdef (Abstract) DOE < Prop
             if obj.is_trainable()
                 obj.Input_field = field;
             end
-            W = Field(obj.mesh, field.CA.*obj.get_transmission_function());
+            W = Field(field.CA.*obj.get_transmission_function());
         end
 
         function need = need_error_field(obj)
@@ -53,7 +53,7 @@ classdef (Abstract) DOE < Prop
                 end
             end
             if obj.prev_node.need_error_field()
-                obj.prev_node.set_error_field(Field(obj.mesh, error));
+                obj.prev_node.set_error_field(Field(error));
             end
         end
 
