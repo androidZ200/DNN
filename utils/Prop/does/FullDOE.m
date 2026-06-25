@@ -47,7 +47,7 @@ classdef FullDOE < DOE
 
         function make_gradient_step(obj, gradient, speed)
             if obj.is_trainable()
-                obj.data = obj.data - speed * obj.optimizer.optimize(gradient);
+                obj.data = obj.data - speed * obj.optimizer.optimize(gradient).*obj.mask;
             end
         end
 

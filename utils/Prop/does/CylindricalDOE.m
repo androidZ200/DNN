@@ -32,6 +32,14 @@ classdef CylindricalDOE < DOE & MatrixPropagator
             obj.data = GPUTest(obj.type.get_data_from(data));
         end
 
+        function obj = set_mask(obj, mask)
+            if isequal(size(mask), size(obj.mesh)) || size(mask) == 1
+                obj.mask = GPUTest(mask);
+            else
+                error("the sizes of the arrays do not match");
+            end
+        end
+
         function gradient = get_gradient(obj, error)
             gradient = obj.type.get_gradient(error, obj.data);
             gradient = mean(gradient, find(size(obj.data)==1));
@@ -47,7 +55,7 @@ classdef CylindricalDOE < DOE & MatrixPropagator
 
         function make_gradient_step(obj, gradient, speed)
             if obj.is_trainable()
-                obj.data = obj.data - speed * obj.optimizer.optimize(gradient);
+                obj.data = obj.data - speed * obj.optimizer.optimize(gradient).*obj.mask;
             end
         end
 
