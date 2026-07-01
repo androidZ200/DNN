@@ -89,8 +89,8 @@ classdef CompiledMatrixPropagator < Prop & MatrixPropagator
                 obj.queue = {};
             end
 
-            obj.Mat_left = node.get_left_f()*obj.Mat_left;
-            obj.Mat_right = obj.Mat_right*node.get_right_f();
+            obj.Mat_left = node.get_left()*obj.Mat_left;
+            obj.Mat_right = obj.Mat_right*node.get_right();
         end
     end
 end
