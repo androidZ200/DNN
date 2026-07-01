@@ -35,13 +35,13 @@ classdef (Abstract) GetOutput < Decoder & Opt_Input
             field = obj.lastW;
         end
         function int = intensity(obj, input)
-            int = intensity(obj.get_field(input));
+            int = abs(obj.get_field(input)).^2;
         end
         function score = get_output(obj, input)
             score = obj.intensity(input);
         end
         function set_error_field(obj, error)
-            error = Field(2*error.*conj(obj.lastW.CA));
+            error = 2*error.*conj(obj.lastW);
             obj.prev_node.set_error_field(error);
         end
         function mesh = input_mesh(obj)

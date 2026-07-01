@@ -44,10 +44,10 @@ classdef ASMPropagator < FreePropagator
 
         function field = get_field(obj, input)
             field = obj.prev_node.get_field(input);
-            field = Field(ifft2(fft2(field.CA).*obj.U));
+            field = ifft2(fft2(field).*obj.U);
         end
         function set_error_field(obj, error)
-            error = Field(ifft2(fft2(error.CA).*obj.U));
+            error = ifft2(fft2(error).*obj.U);
             obj.prev_node.set_error_field(error);
         end
         function mesh = input_mesh(obj)
