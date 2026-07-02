@@ -77,6 +77,44 @@ training1;
 
 check_result;
 
+%% example of a quasi-coherent source
+
+clear variables;
+
+global is_gpu; is_gpu = true;
+lambda = 532e-9;
+f = 0.01;
+f_inp = 0.5;
+scale = 8;
+count_wave = 20;
+mesh = Mesh(4e-6, 512);
+mesh_inp = Mesh(4e-6, 28*scale);
+
+mnist_digits;
+MASK = mask10_1(mesh,[1.2e-3, 0.9e-3],100e-6);
+
+AMP = exp(-(mesh_inp.X.^2 + mesh_inp.Y.^2)./(0.5*mesh_inp.X(end)).^2);
+dc = InputModulator(mesh_inp, @(W)normalize_field(AMP.*exp(2i*pi*rand([size(mesh_inp), size(W,3), count_wave]))));
+dc = SincPropagator(dc, f_inp, lambda);
+dc = GetFullIntensity(dc, mesh_inp);
+
+dc = InputModulator(mesh_inp, @(W)dc.get_field(W).*repelem(W,scale,scale));
+dc = SincPropagator(dc, f, lambda);
+dc = FullDOE(dc, mesh, PhaseDOE(), AdamFabric()); doe = dc;
+dc = SincPropagator(dc, f, lambda);
+dc = GetMaskSum(dc, mesh, MASK); decoder = dc;
+predictor = NormalizationSUM(dc);
+Error = ErrorSCE(predictor, ClassificationTarget(dc.count_outputs(), length(unique(TrainLabel))), 80);
+
+epoch = 2;
+batch = 4;
+cycle = size(Train,3)*epoch/20;
+speed = 0.3;
+slowdown = 0.01^(batch/epoch/size(Train,3));
+training1;
+
+check_result;
+
 %% example image generation
 
 clear variables;
