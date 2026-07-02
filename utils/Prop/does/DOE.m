@@ -31,7 +31,7 @@ classdef (Abstract) DOE < Prop
             if obj.is_trainable()
                 obj.Input_field = field;
             end
-            W = Field(field.CA.*obj.get_transmission_function());
+            W = field.*obj.get_transmission_function();
         end
 
         function need = need_error_field(obj)
@@ -39,9 +39,9 @@ classdef (Abstract) DOE < Prop
         end
 
         function set_error_field(obj, error)
-            error = error.CA.*obj.get_transmission_function();
+            error = error.*obj.get_transmission_function();
             if obj.is_trainable()
-                grad = obj.get_gradient(error.*obj.Input_field.CA);
+                grad = obj.get_gradient(error.*obj.Input_field);
                 sumdim = setdiff(find(size(grad) > 1), [1 2]);
                 if ~isempty(sumdim)
                     grad = sum(grad,sumdim);
@@ -53,7 +53,7 @@ classdef (Abstract) DOE < Prop
                 end
             end
             if obj.prev_node.need_error_field()
-                obj.prev_node.set_error_field(Field(error));
+                obj.prev_node.set_error_field(error);
             end
         end
 
