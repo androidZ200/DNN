@@ -38,9 +38,7 @@ classdef (Abstract) GetOutput < Decoder & Opt_Input
             field = obj.get_field(input);
             sumdim = setdiff(find(size(field) > 1), [1 2 3]);
             int = abs(field).^2;
-            if ~isempty(sumdim)
-                int = sum(abs(field).^2, sumdim);
-            end
+            if ~isempty(sumdim); int = sum(abs(field).^2, sumdim); end
         end
         function score = get_output(obj, input)
             score = obj.intensity(input);

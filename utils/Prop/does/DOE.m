@@ -7,6 +7,7 @@ classdef (Abstract) DOE < Prop
     properties (Access=protected)
         Input_field;
         Gradient;
+        TF; % transmission function
     end
     
     methods (Abstract)
@@ -28,10 +29,9 @@ classdef (Abstract) DOE < Prop
 
         function W = get_field(obj, input)
             field = obj.prev_node.get_field(input);
-            if obj.is_trainable()
-                obj.Input_field = field;
-            end
-            W = field.*obj.get_transmission_function();
+            if obj.is_trainable(); obj.Input_field = field; end
+            if isempty(obj.TF); obj.TF = obj.get_transmission_function(); end
+            W = field.*obj.TF;
         end
 
         function need = need_error_field(obj)
@@ -39,13 +39,11 @@ classdef (Abstract) DOE < Prop
         end
 
         function set_error_field(obj, error)
-            error = error.*obj.get_transmission_function();
+            error = error.*obj.TF;
             if obj.is_trainable()
                 grad = obj.get_gradient(error.*obj.Input_field);
                 sumdim = setdiff(find(size(grad) > 1), [1 2]);
-                if ~isempty(sumdim)
-                    grad = sum(grad,sumdim);
-                end
+                if ~isempty(sumdim); grad = sum(grad,sumdim); end
                 if isempty(obj.Gradient)
                     obj.Gradient = grad;
                 else
@@ -62,7 +60,7 @@ classdef (Abstract) DOE < Prop
         end
 
         function mesh = output_mesh(obj)
-            mesh = obj.mesh;
+            mesh = obj.input_mesh();
         end
 
         function set_output_mesh(obj, mesh)
@@ -75,6 +73,7 @@ classdef (Abstract) DOE < Prop
         function clear(obj)
             obj.Input_field = [];
             obj.Gradient = [];
+            obj.TF = [];
             obj.prev_node.clear();
         end
         
